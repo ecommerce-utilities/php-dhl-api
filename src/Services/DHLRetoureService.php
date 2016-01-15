@@ -2,6 +2,7 @@
 namespace EcommerceUtilities\DHL\Services;
 
 use EcommerceUtilities\DHL\Common\DHLApiCredentials;
+use EcommerceUtilities\DHL\Common\DHLApiException;
 use EcommerceUtilities\DHL\Services\DHLRetoureService\DHLRetoureServiceResponse;
 
 class DHLRetoureService {
@@ -24,6 +25,7 @@ class DHLRetoureService {
 	 * @param string $city
 	 * @param string $voucherNr
 	 * @return DHLRetoureServiceResponse
+	 * @throws DHLApiException
 	 */
 	public function getRetourePdf($name1, $name2, $street, $streetNumber, $zip, $city, $voucherNr = '') {
 		$xmlRequest = $this->getRequestXml($name1, $name2, $street, $streetNumber, $zip, $city, $voucherNr);
@@ -124,7 +126,7 @@ class DHLRetoureService {
 		$error = curl_errno($ch);
 
 		if($error) {
-			throw new \Exception(curl_error($ch));
+			throw new DHLApiException(curl_error($ch));
 		}
 
 		curl_close($ch);
@@ -134,6 +136,7 @@ class DHLRetoureService {
 	/**
 	 * @param string $response
 	 * @return string
+	 * @throws DHLApiException
 	 */
 	private function getPdfFromResponse($response) {
 		$responseDoc = new \DOMDocument();
@@ -141,6 +144,14 @@ class DHLRetoureService {
 		$xpath = new \DOMXPath($responseDoc);
 		$xpath->registerNamespace('env', 'http://schemas.xmlsoap.org/soap/envelope/');
 		$xpath->registerNamespace('var3bl', 'https://amsel.dpwn.net/abholportal/gw/lp/schema/1.0/var3bl');
+
+		$errorCode = $xpath->evaluate('string(/*/env:Body/env:Fault/faultcode)');
+		$errorText = $xpath->evaluate('string(/*/env:Body/env:Fault/faultstring)');
+
+		if($errorCode) {
+			throw new DHLApiException("{$errorText} ({$errorCode})");
+		}
+
 		$base64PDF = $xpath->evaluate('string(/*/env:Body/var3bl:BookLabelResponse/var3bl:label)');
 		$trackingNumber = $xpath->evaluate('string(/*/env:Body/var3bl:BookLabelResponse/@idc)');
 		$pdf = base64_decode($base64PDF);
