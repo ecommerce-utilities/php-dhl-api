@@ -1,0 +1,12 @@
+{
+    "name": "ecommerce-utilities/dhl-api",
+    "type": "library",
+    "license": "MIT",
+    "minimum-stability": "stable",
+    "require": {},
+    "autoload": {
+        "psr-4": {
+			"EcommerceUtilities\\DHL\\": "src/"
+		}
+    }
+}
