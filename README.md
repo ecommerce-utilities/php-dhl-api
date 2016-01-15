@@ -1,6 +1,6 @@
 # php-dhl-api
 
-Does not work right now. Do not touch. Use at your own risk - parents are responsible for their children!
+Use at your own risk - parents are responsible for their children!
 
 ## Example:
  
