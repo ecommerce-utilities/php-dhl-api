@@ -1,6 +1,10 @@
-# php-dhl-api
+# DHL-API
 
 Use at your own risk - parents are responsible for their children!
+
+## Composer
+
+`composer require ecommerce-utilities/dhl-api *`
 
 ## Example:
  
