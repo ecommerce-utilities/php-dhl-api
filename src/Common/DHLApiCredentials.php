@@ -11,21 +11,21 @@ class DHLApiCredentials {
 	/** @var string */
 	private $endpoint = null;
 	/** @var string */
-	private $deliveryName;
+	private $warehouseName;
 
 	/**
 	 * @param string $username
 	 * @param string $password
 	 * @param string $portalId
-	 * @param string $deliveryName
+	 * @param string $warehouseName
 	 * @param string $endpoint
 	 */
-	public function __construct($username, $password, $portalId, $deliveryName, $endpoint = 'https://amsel.dpwn.net/abholportal/gw/lp/SoapConnector') {
+	public function __construct($username, $password, $portalId, $warehouseName, $endpoint = 'https://amsel.dpwn.net/abholportal/gw/lp/SoapConnector') {
 		$this->username = $username;
 		$this->password = $password;
 		$this->portalId = $portalId;
 		$this->endpoint = $endpoint;
-		$this->deliveryName = $deliveryName;
+		$this->warehouseName = $warehouseName;
 	}
 
 	/**
@@ -52,8 +52,8 @@ class DHLApiCredentials {
 	/**
 	 * @return string
 	 */
-	public function getDeliveryName() {
-		return $this->deliveryName;
+	public function getWarehouseName() {
+		return $this->warehouseName;
 	}
 
 	/**

@@ -76,7 +76,7 @@ class DHLRetoureService {
 			$createNode('soapenv:Body', null, [], [
 				$createNode('var:BookLabelRequest', null, [
 					'portalId' => $this->credentials->getPortalId(),
-					'deliveryName' => $this->credentials->getDeliveryName(),
+					'deliveryName' => $this->credentials->getWarehouseName(),
 					'shipmentReference' => $voucherNr,
 					'customerReference' => $voucherNr,
 					'labelFormat' => 'PDF',
