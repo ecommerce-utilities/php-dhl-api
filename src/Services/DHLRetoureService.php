@@ -135,7 +135,7 @@ class DHLRetoureService {
 
 	/**
 	 * @param string $response
-	 * @return string
+	 * @return DHLRetoureServiceResponse
 	 * @throws DHLApiException
 	 */
 	private function getPdfFromResponse($response) {
