@@ -4,7 +4,10 @@
     "type": "library",
     "license": "MIT",
     "minimum-stability": "stable",
-    "require": {},
+    "require": {
+		"ext-curl": "*",
+		"ext-dom": "*"
+	},
     "autoload": {
         "psr-4": {
 			"EcommerceUtilities\\DHL\\": "src/"

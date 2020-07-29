@@ -1,6 +1,8 @@
 <?php
 namespace EcommerceUtilities\DHL\Services;
 
+use DOMDocument;
+use DOMXPath;
 use EcommerceUtilities\DHL\Common\DHLApiCredentials;
 use EcommerceUtilities\DHL\Common\DHLApiException;
 use EcommerceUtilities\DHL\Services\DHLRetoureService\DHLRetoureServiceResponse;
@@ -49,7 +51,7 @@ class DHLRetoureService {
 		$doc->loadXML('<?xml version="1.0" encoding="UTF-8" ?><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:var="https://amsel.dpwn.net/abholportal/gw/lp/schema/1.0/var3bl"></soapenv:Envelope>');
 		$doc->formatOutput = true;
 
-		$createNode = function ($tagName, $value = null, array $attributes, array $children = []) use ($doc) {
+		$createNode = static function ($tagName, $value = null, array $attributes, array $children = []) use ($doc) {
 			$elem = $doc->createElement($tagName);
 			if($value !== null) {
 				$elem->appendChild($doc->createTextNode($value));
@@ -139,9 +141,9 @@ class DHLRetoureService {
 	 * @throws DHLApiException
 	 */
 	private function getPdfFromResponse($response) {
-		$responseDoc = new \DOMDocument();
+		$responseDoc = new DOMDocument();
 		$responseDoc->loadXML($response);
-		$xpath = new \DOMXPath($responseDoc);
+		$xpath = new DOMXPath($responseDoc);
 		$xpath->registerNamespace('env', 'http://schemas.xmlsoap.org/soap/envelope/');
 		$xpath->registerNamespace('var3bl', 'https://amsel.dpwn.net/abholportal/gw/lp/schema/1.0/var3bl');
 
