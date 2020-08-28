@@ -1,5 +1,7 @@
 <?php
 namespace EcommerceUtilities\DHL\Common;
 
-class DHLApiException extends \RuntimeException{
+use RuntimeException;
+
+class DHLApiException extends RuntimeException {
 }

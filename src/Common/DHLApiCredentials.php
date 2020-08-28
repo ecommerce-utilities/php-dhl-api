@@ -2,64 +2,41 @@
 namespace EcommerceUtilities\DHL\Common;
 
 class DHLApiCredentials {
+	/** @var bool */
+	private $productionEnv;
 	/** @var string */
-	private $username = null;
+	private $username;
 	/** @var string */
-	private $password = null;
+	private $password;
 	/** @var string */
-	private $portalId = null;
-	/** @var string */
-	private $endpoint = null;
-	/** @var string */
-	private $warehouseName;
+	private $receiverId;
 
 	/**
+	 * @param bool $productionEnv
 	 * @param string $username
 	 * @param string $password
-	 * @param string $portalId
-	 * @param string $warehouseName
-	 * @param string $endpoint
+	 * @param string $receiverId
 	 */
-	public function __construct($username, $password, $portalId, $warehouseName, $endpoint = 'https://amsel.dpwn.net/abholportal/gw/lp/SoapConnector') {
+	public function __construct(bool $productionEnv, string $username, string $password, string $receiverId) {
+		$this->productionEnv = $productionEnv;
 		$this->username = $username;
 		$this->password = $password;
-		$this->portalId = $portalId;
-		$this->endpoint = $endpoint;
-		$this->warehouseName = $warehouseName;
+		$this->receiverId = $receiverId;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getUsername() {
+	public function getUsername(): string {
 		return $this->username;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getPassword() {
+	public function getPassword(): string {
 		return $this->password;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getPortalId() {
-		return $this->portalId;
+	public function getReceiverId(): string {
+		return $this->receiverId;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getWarehouseName() {
-		return $this->warehouseName;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getEndpoint() {
-		return $this->endpoint;
+	public function isProductionEnv(): string {
+		return $this->productionEnv;
 	}
 }

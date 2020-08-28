@@ -1,162 +1,102 @@
 <?php
 namespace EcommerceUtilities\DHL\Services;
 
-use DOMDocument;
-use DOMXPath;
 use EcommerceUtilities\DHL\Common\DHLApiCredentials;
 use EcommerceUtilities\DHL\Common\DHLApiException;
+use EcommerceUtilities\DHL\Common\DHLBusinessPortalCredentials;
 use EcommerceUtilities\DHL\Services\DHLRetoureService\DHLRetoureServiceResponse;
+use Http\Message\StreamFactory;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
+use Throwable;
 
 class DHLRetoureService {
 	/** @var DHLApiCredentials */
 	private $credentials;
+	/** @var DHLBusinessPortalCredentials */
+	private $businessPortalCredentials;
+	/** @var RequestFactoryInterface */
+	private $requestFactory;
+	/** @var StreamFactory */
+	private $streamFactory;
+	/** @var ClientInterface */
+	private $client;
 
 	/**
+	 * @param DHLBusinessPortalCredentials $businessPortalCredentials
 	 * @param DHLApiCredentials $credentials
+	 * @param RequestFactoryInterface $requestFactory
+	 * @param StreamFactory $streamFactory
+	 * @param ClientInterface $client
 	 */
-	public function __construct(DHLApiCredentials $credentials) {
+	public function __construct(DHLBusinessPortalCredentials $businessPortalCredentials, DHLApiCredentials $credentials, RequestFactoryInterface $requestFactory, StreamFactory $streamFactory, ClientInterface $client) {
+		$this->businessPortalCredentials = $businessPortalCredentials;
 		$this->credentials = $credentials;
+		$this->requestFactory = $requestFactory;
+		$this->streamFactory = $streamFactory;
+		$this->client = $client;
 	}
 
 	/**
 	 * @param string $name1
-	 * @param string $name2
+	 * @param string|null $name2
+	 * @param string|null $name3
 	 * @param string $street
 	 * @param string $streetNumber
 	 * @param string $zip
 	 * @param string $city
-	 * @param string $voucherNr
+	 * @param string $countryId
+	 * @param string|null $voucherNr
+	 * @param string|null$shipmentReference
 	 * @return DHLRetoureServiceResponse
-	 * @throws DHLApiException
 	 */
-	public function getRetourePdf($name1, $name2, $street, $streetNumber, $zip, $city, $voucherNr = '') {
-		$xmlRequest = $this->getRequestXml($name1, $name2, $street, $streetNumber, $zip, $city, $voucherNr);
-		$xmlResponse = $this->curlSoapRequest($xmlRequest);
-		$pdf = $this->getPdfFromResponse($xmlResponse);
-		return $pdf;
-	}
+	public function getRetourePdf(string $name1, ?string $name2, ?string $name3, string $street, string $streetNumber, string $zip, string $city, string $countryId, ?string $voucherNr = null, ?string $shipmentReference = null): DHLRetoureServiceResponse {
+		$request = $this->requestFactory->createRequest('POST', $this->credentials->isProductionEnv() ? 'https://cig.dhl.de/services/production/rest/returns/' : 'https://cig.dhl.de/services/sandbox/rest/returns/');
 
-	/**
-	 * @param string $name1
-	 * @param string $name2
-	 * @param string $street
-	 * @param string $streetNumber
-	 * @param string $zip
-	 * @param string $city
-	 * @param string $voucherNr
-	 * @return string
-	 */
-	private function getRequestXml($name1, $name2, $street, $streetNumber, $zip, $city, $voucherNr = '') {
-		$doc = new \DOMDocument();
-		$doc->loadXML('<?xml version="1.0" encoding="UTF-8" ?><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:var="https://amsel.dpwn.net/abholportal/gw/lp/schema/1.0/var3bl"></soapenv:Envelope>');
-		$doc->formatOutput = true;
-
-		$createNode = static function ($tagName, $value = null, array $attributes, array $children = []) use ($doc) {
-			$elem = $doc->createElement($tagName);
-			if($value !== null) {
-				$elem->appendChild($doc->createTextNode($value));
-			}
-			foreach($attributes as $attributeKey => $attributeValue) {
-				$elem->setAttribute($attributeKey, $attributeValue);
-			}
-			foreach($children as $child) {
-				$elem->appendChild($child);
-			}
-			return $elem;
+		$auth = static function ($username, $password) {
+			$basicAuthCredentials = sprintf('%s:%s', $username, $password);
+			return base64_encode($basicAuthCredentials);
 		};
 
-		$doc->documentElement->appendChild(
-			$createNode('soapenv:Header', null, [], [
-				$createNode('wsse:Security', null, ['soapenv:mustUnderstand' => 1, 'xmlns:wsse' => 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd'], [
-					$createNode('wsse:UsernameToken', null, [], [
-						$createNode('wsse:Username', $this->credentials->getUsername(), [], []),
-						$createNode('wsse:Password', $this->credentials->getPassword(), ['Type' => 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText'], [])
-					])
-				])
-			])
-		);
+		$request = $request
+			->withHeader('Authorization', sprintf('Basic %s', $auth($this->credentials->getUsername(), $this->credentials->getPassword())))
+			->withHeader('DPDHL-User-Authentication-Token', $auth($this->businessPortalCredentials->getUsername(), $this->businessPortalCredentials->getPassword()))
+			->withHeader('Accept', 'application/json')
+			->withHeader('Content-Type', 'application/json');
 
-		$doc->documentElement->appendChild(
-			$createNode('soapenv:Body', null, [], [
-				$createNode('var:BookLabelRequest', null, [
-					'portalId' => $this->credentials->getPortalId(),
-					'deliveryName' => $this->credentials->getWarehouseName(),
-					'shipmentReference' => $voucherNr,
-					'customerReference' => $voucherNr,
-					'labelFormat' => 'PDF',
-					'senderName1' => $name1,
-					'senderName2' => $name2,
-					'senderCareOfName' => 'CareofName',
-					'senderContactPhone' => '',
-					'senderStreet' => $street,
-					'senderStreetNumber' => $streetNumber,
-					'senderBoxNumber' => '',
-					'senderPostalCode' => $zip,
-					'senderCity' => $city
-				], [])
-			])
-		);
+		$data = json_encode([
+			'receiverId' => $this->credentials->getReceiverId(),
+			'customerReference' => $voucherNr,
+			'shipmentReference' => $shipmentReference,
+			'senderAddress' => [
+				'name1' => $name1,
+				'name2' => $name2,
+				'name3' => $name3,
+				'streetName' => $street,
+				'houseNumber' => $streetNumber,
+				'postCode' => $zip,
+				'city' => $city,
+				'country' => ['countryISOCode' => $countryId]
+			],
+			#'weightInGrams' => 1000,
+			'returnDocumentType' => 'SHIPMENT_LABEL'
+		], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR);
 
-		return $doc->saveXML();
-	}
+		$request = $request->withBody($this->streamFactory->createStream($data));
+		$response = $this->client->sendRequest($request);
 
-	/**
-	 * @param string $xmlRequest
-	 * @return string
-	 * @throws \Exception
-	 */
-	private function curlSoapRequest($xmlRequest) {
-		$header = array(
-			'Content-type: text/xml;charset="utf-8"',
-			'Accept: text/xml',
-			'Cache-Control: no-cache',
-			'Pragma: no-cache',
-			'Content-length: ' . strlen($xmlRequest),
-		);
+		$result = $response->getBody()->getContents();
 
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $this->credentials->getEndpoint());
-		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
-		curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-		curl_setopt($ch, CURLOPT_POST, true);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlRequest);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-		$response = curl_exec($ch);
-		$error = curl_errno($ch);
+		try {
+			$data = json_decode($result, false, 512, JSON_THROW_ON_ERROR);
 
-		if($error) {
-			throw new DHLApiException(curl_error($ch));
+			return new DHLRetoureServiceResponse(
+				$data->shipmentNumber,
+				base64_decode($data->labelData),
+				$data
+			);
+		} catch(Throwable $e) {
+			throw new DHLApiException($e->getMessage(), $e->getCode(), $e);
 		}
-
-		curl_close($ch);
-		return $response;
-	}
-
-	/**
-	 * @param string $response
-	 * @return DHLRetoureServiceResponse
-	 * @throws DHLApiException
-	 */
-	private function getPdfFromResponse($response) {
-		$responseDoc = new DOMDocument();
-		$responseDoc->loadXML($response);
-		$xpath = new DOMXPath($responseDoc);
-		$xpath->registerNamespace('env', 'http://schemas.xmlsoap.org/soap/envelope/');
-		$xpath->registerNamespace('var3bl', 'https://amsel.dpwn.net/abholportal/gw/lp/schema/1.0/var3bl');
-
-		$errorCode = $xpath->evaluate('string(/*/env:Body/env:Fault/faultcode)');
-		$errorText = $xpath->evaluate('string(/*/env:Body/env:Fault/faultstring)');
-
-		if($errorCode) {
-			throw new DHLApiException("{$errorText} ({$errorCode})");
-		}
-
-		$base64PDF = $xpath->evaluate('string(/*/env:Body/var3bl:BookLabelResponse/var3bl:label)');
-		$trackingNumber = $xpath->evaluate('string(/*/env:Body/var3bl:BookLabelResponse/@idc)');
-		$pdf = base64_decode($base64PDF);
-		return new DHLRetoureServiceResponse($trackingNumber, $pdf, $response);
 	}
 }

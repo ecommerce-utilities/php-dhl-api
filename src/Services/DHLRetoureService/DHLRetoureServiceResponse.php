@@ -2,42 +2,42 @@
 namespace EcommerceUtilities\DHL\Services\DHLRetoureService;
 
 class DHLRetoureServiceResponse {
-	/** @var string|null */
-	private $trackingNumber = null;
-	/** @var string|null */
-	private $pdf = null;
-	/** @var string|null */
-	private $xml = null;
+	/** @var string */
+	private $trackingNumber;
+	/** @var string */
+	private $labelData;
+	/** @var object */
+	private $data;
 
 	/**
-	 * @param null|string $trackingNumber
-	 * @param null|string $pdf
-	 * @param null|string $xml
+	 * @param string $trackingNumber
+	 * @param string $labelData
+	 * @param object $data
 	 */
-	public function __construct($trackingNumber, $pdf, $xml) {
+	public function __construct(string $trackingNumber, string $labelData, object $data) {
 		$this->trackingNumber = $trackingNumber;
-		$this->pdf = $pdf;
-		$this->xml = $xml;
+		$this->labelData = $labelData;
+		$this->data = $data;
 	}
 
 	/**
-	 * @return null|string
+	 * @return string
 	 */
-	public function getTrackingNumber() {
+	public function getTrackingNumber(): string {
 		return $this->trackingNumber;
 	}
 
 	/**
-	 * @return null|string
+	 * @return string
 	 */
-	public function getPdf() {
-		return $this->pdf;
+	public function getLabelData(): string {
+		return $this->labelData;
 	}
 
 	/**
-	 * @return null|string
+	 * @return object
 	 */
-	public function getXml() {
-		return $this->xml;
+	public function getData(): object {
+		return $this->data;
 	}
 }
