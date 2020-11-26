@@ -90,11 +90,17 @@ class DHLRetoureService {
 		try {
 			$data = json_decode($result, false, 512, JSON_THROW_ON_ERROR);
 
+			if(($data->code ?? 0) > 0) {
+				throw new DHLApiException(sprintf("DHL-Error: %s (%d)", $data->detail ?? 'No details provided', $data->code ?? 0));
+			}
+
 			return new DHLRetoureServiceResponse(
 				$data->shipmentNumber,
 				base64_decode($data->labelData),
 				$data
 			);
+		} catch(DHLApiException $e) {
+			throw $e;
 		} catch(Throwable $e) {
 			throw new DHLApiException($e->getMessage(), $e->getCode(), $e);
 		}
