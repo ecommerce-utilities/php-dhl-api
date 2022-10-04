@@ -4,9 +4,9 @@ namespace EcommerceUtilities\DHL;
 use EcommerceUtilities\DHL\Common\DHLApiCredentials;
 use EcommerceUtilities\DHL\Common\DHLBusinessPortalCredentials;
 use EcommerceUtilities\DHL\Services\DHLRetoureService;
-use Http\Message\StreamFactory;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\StreamFactoryInterface;
 
 class DHLServices {
 	/** @var DHLApiCredentials */
@@ -15,7 +15,7 @@ class DHLServices {
 	private $businessPortalCredentials;
 	/** @var RequestFactoryInterface */
 	private $requestFactory;
-	/** @var StreamFactory */
+	/** @var StreamFactoryInterface */
 	private $streamFactory;
 	/** @var ClientInterface */
 	private $client;
@@ -24,10 +24,10 @@ class DHLServices {
 	 * @param DHLBusinessPortalCredentials $businessPortalCredentials
 	 * @param DHLApiCredentials $credentials
 	 * @param RequestFactoryInterface $requestFactory
-	 * @param StreamFactory $streamFactory
+	 * @param StreamFactoryInterface $streamFactory
 	 * @param ClientInterface $client
 	 */
-	public function __construct(DHLBusinessPortalCredentials $businessPortalCredentials, DHLApiCredentials $credentials, RequestFactoryInterface $requestFactory, StreamFactory $streamFactory, ClientInterface $client) {
+	public function __construct(DHLBusinessPortalCredentials $businessPortalCredentials, DHLApiCredentials $credentials, RequestFactoryInterface $requestFactory, StreamFactoryInterface $streamFactory, ClientInterface $client) {
 		$this->businessPortalCredentials = $businessPortalCredentials;
 		$this->credentials = $credentials;
 		$this->requestFactory = $requestFactory;

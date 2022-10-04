@@ -8,16 +8,18 @@
 		"php": ">= 7.2",
 		"ext-curl": "*",
 		"ext-dom": "*",
-        "psr/http-message": "^1.0",
-        "psr/http-factory": "^1.0",
 		"ext-json": "*",
-        "psr/http-client": "^1.0"
+        "psr/http-client": "^1.0",
+        "psr/http-factory": "^1.0",
+        "psr/http-message": "^1.0"
 	},
 	"require-dev": {
         "guzzlehttp/guzzle": "7.*",
-        "guzzlehttp/psr7": "*",
+        "guzzlehttp/psr7": "^2.4",
         "http-interop/http-factory-guzzle": "^1.0",
-		"dhl/sdk-api-bcs-returns": "^2.0"
+		"dhl/sdk-api-bcs-returns": "^2.0",
+        "php-http/curl-client": "^2.2",
+        "php-http/message": "^1.13"
 	},
 	"autoload": {
         "psr-4": {
