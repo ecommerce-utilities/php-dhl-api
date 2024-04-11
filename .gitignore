@@ -4,5 +4,6 @@
 !/.gitignore
 !/composer.json
 !/LICENSE
+!/phpstan.neon
 !/README.md
-!/.editorconfig
+!/rector.php
