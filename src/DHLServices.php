@@ -9,31 +9,13 @@ use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 
 class DHLServices {
-	/** @var DHLApiCredentials */
-	private $credentials;
-	/** @var DHLApiCredentials */
-	private $businessPortalCredentials;
-	/** @var RequestFactoryInterface */
-	private $requestFactory;
-	/** @var StreamFactoryInterface */
-	private $streamFactory;
-	/** @var ClientInterface */
-	private $client;
-
-	/**
-	 * @param DHLBusinessPortalCredentials $businessPortalCredentials
-	 * @param DHLApiCredentials $credentials
-	 * @param RequestFactoryInterface $requestFactory
-	 * @param StreamFactoryInterface $streamFactory
-	 * @param ClientInterface $client
-	 */
-	public function __construct(DHLBusinessPortalCredentials $businessPortalCredentials, DHLApiCredentials $credentials, RequestFactoryInterface $requestFactory, StreamFactoryInterface $streamFactory, ClientInterface $client) {
-		$this->businessPortalCredentials = $businessPortalCredentials;
-		$this->credentials = $credentials;
-		$this->requestFactory = $requestFactory;
-		$this->streamFactory = $streamFactory;
-		$this->client = $client;
-	}
+	public function __construct(
+		private readonly DHLBusinessPortalCredentials $businessPortalCredentials,
+		private readonly DHLApiCredentials $credentials,
+		private readonly RequestFactoryInterface $requestFactory,
+		private readonly StreamFactoryInterface $streamFactory,
+		private readonly ClientInterface $client
+	) {}
 
 	/**
 	 * @return DHLRetoureService

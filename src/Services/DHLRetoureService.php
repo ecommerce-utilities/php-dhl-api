@@ -11,43 +11,15 @@ use Psr\Http\Message\StreamFactoryInterface;
 use Throwable;
 
 class DHLRetoureService {
-	/** @var DHLApiCredentials */
-	private $credentials;
-	/** @var DHLBusinessPortalCredentials */
-	private $businessPortalCredentials;
-	/** @var RequestFactoryInterface */
-	private $requestFactory;
-	/** @var StreamFactoryInterface */
-	private $streamFactory;
-	/** @var ClientInterface */
-	private $client;
+	public function __construct(
+		private readonly DHLBusinessPortalCredentials $businessPortalCredentials,
+		private readonly DHLApiCredentials $credentials,
+		private readonly RequestFactoryInterface $requestFactory,
+		private readonly StreamFactoryInterface $streamFactory,
+		private readonly ClientInterface $client
+	) {}
 
 	/**
-	 * @param DHLBusinessPortalCredentials $businessPortalCredentials
-	 * @param DHLApiCredentials $credentials
-	 * @param RequestFactoryInterface $requestFactory
-	 * @param StreamFactoryInterface $streamFactory
-	 * @param ClientInterface $client
-	 */
-	public function __construct(DHLBusinessPortalCredentials $businessPortalCredentials, DHLApiCredentials $credentials, RequestFactoryInterface $requestFactory, StreamFactoryInterface $streamFactory, ClientInterface $client) {
-		$this->businessPortalCredentials = $businessPortalCredentials;
-		$this->credentials = $credentials;
-		$this->requestFactory = $requestFactory;
-		$this->streamFactory = $streamFactory;
-		$this->client = $client;
-	}
-
-	/**
-	 * @param string $name1
-	 * @param string|null $name2
-	 * @param string|null $name3
-	 * @param string $street
-	 * @param string $streetNumber
-	 * @param string $zip
-	 * @param string $city
-	 * @param string $countryId
-	 * @param string|null $voucherNr
-	 * @param string|null$shipmentReference
 	 * @return DHLRetoureServiceResponse
 	 */
 	public function getRetourePdf(string $name1, ?string $name2, ?string $name3, string $street, string $streetNumber, string $zip, string $city, string $countryId, ?string $voucherNr = null, ?string $shipmentReference = null): DHLRetoureServiceResponse {

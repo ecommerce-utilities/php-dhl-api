@@ -2,27 +2,12 @@
 namespace EcommerceUtilities\DHL\Common;
 
 class DHLApiCredentials {
-	/** @var bool */
-	private $productionEnv;
-	/** @var string */
-	private $username;
-	/** @var string */
-	private $password;
-	/** @var string */
-	private $receiverId;
-
-	/**
-	 * @param bool $productionEnv
-	 * @param string $username
-	 * @param string $password
-	 * @param string $receiverId
-	 */
-	public function __construct(bool $productionEnv, string $username, string $password, string $receiverId) {
-		$this->productionEnv = $productionEnv;
-		$this->username = $username;
-		$this->password = $password;
-		$this->receiverId = $receiverId;
-	}
+	public function __construct(
+		private readonly bool $productionEnv,
+		private readonly string $username,
+		private readonly string $password,
+		private readonly string $receiverId
+	) {}
 
 	public function getUsername(): string {
 		return $this->username;

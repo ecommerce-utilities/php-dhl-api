@@ -3,19 +3,14 @@
 namespace EcommerceUtilities\DHL\Common;
 
 class DHLBusinessPortalCredentials {
-	/** @var string */
-	private $username;
-	/** @var string */
-	private $password;
-
 	/**
 	 * @param string $username
 	 * @param string $password
 	 */
-	public function __construct($username, $password) {
-		$this->username = $username;
-		$this->password = $password;
-	}
+	public function __construct(
+		private readonly string $username,
+		private readonly string $password
+	) {}
 
 	/**
 	 * @return string

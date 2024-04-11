@@ -2,23 +2,11 @@
 namespace EcommerceUtilities\DHL\Services\DHLRetoureService;
 
 class DHLRetoureServiceResponse {
-	/** @var string */
-	private $trackingNumber;
-	/** @var string */
-	private $labelData;
-	/** @var object */
-	private $data;
-
-	/**
-	 * @param string $trackingNumber
-	 * @param string $labelData
-	 * @param object $data
-	 */
-	public function __construct(string $trackingNumber, string $labelData, object $data) {
-		$this->trackingNumber = $trackingNumber;
-		$this->labelData = $labelData;
-		$this->data = $data;
-	}
+	public function __construct(
+		private readonly string $trackingNumber,
+		private readonly string $labelData,
+		private readonly object $data
+	) {}
 
 	/**
 	 * @return string
