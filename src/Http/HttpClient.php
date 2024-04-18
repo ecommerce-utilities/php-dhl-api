@@ -4,6 +4,7 @@ namespace EcommerceUtilities\DHL\Http;
 
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * @phpstan-type HttpOptions = array{headers: array<string, string>}
@@ -26,14 +27,7 @@ class HttpClient {
 			$request = $request->withHeader($header, $value);
 		}
 		$response = $this->client->sendRequest($request);
-		$body = $response->getBody()->getContents();
-		return $this->checkStatusCode(
-			new HttpResponse(
-				statusCode: $response->getStatusCode(),
-				body: $body,
-				headers: $response->getHeaders()
-			)
-		);
+		return $this->handleResponse($response);
 	}
 
 	/**
@@ -49,21 +43,19 @@ class HttpClient {
 			$request = $request->withHeader($header, $value);
 		}
 		$response = $this->client->sendRequest($request);
-		$responseBody = $response->getBody()->getContents();
-
-		return $this->checkStatusCode(
-			new HttpResponse(
-				statusCode: $response->getStatusCode(),
-				body: $responseBody,
-				headers: $response->getHeaders()
-			)
-		);
+		return $this->handleResponse($response);
 	}
 
-	private function checkStatusCode(HttpResponse $response): HttpResponse {
-		if($response->statusCode < 200 || $response->statusCode >= 300) {
-			throw new HttpClientException($response);
+	private function handleResponse(ResponseInterface $response): HttpResponse {
+		$body = $response->getBody()->getContents();
+		$result = new HttpResponse(
+			statusCode: $response->getStatusCode(),
+			body: $body,
+			headers: $response->getHeaders()
+		);
+		if($result->statusCode < 200 || $result->statusCode >= 300) {
+			throw new HttpClientException($result);
 		}
-		return $response;
+		return $result;
 	}
 }
