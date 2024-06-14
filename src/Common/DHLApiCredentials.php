@@ -21,7 +21,7 @@ class DHLApiCredentials {
 		return $this->receiverId;
 	}
 
-	public function isProductionEnv(): string {
+	public function isProductionEnv(): bool {
 		return $this->productionEnv;
 	}
 }

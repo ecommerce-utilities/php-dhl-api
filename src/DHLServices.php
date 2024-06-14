@@ -3,6 +3,7 @@ namespace EcommerceUtilities\DHL;
 
 use EcommerceUtilities\DHL\Common\DHLApiCredentials;
 use EcommerceUtilities\DHL\Common\DHLBusinessPortalCredentials;
+use EcommerceUtilities\DHL\Services\DHLParcelStatusService;
 use EcommerceUtilities\DHL\Services\DHLRetoureService;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
@@ -22,5 +23,9 @@ class DHLServices {
 	 */
 	public function getRetoureService(): DHLRetoureService {
 		return new DHLRetoureService($this->businessPortalCredentials, $this->credentials, $this->requestFactory, $this->streamFactory, $this->client);
+	}
+
+	public function getParcelStatusService(): DHLParcelStatusService {
+		return new DHLParcelStatusService($this->credentials, $this->requestFactory, $this->client);
 	}
 }
