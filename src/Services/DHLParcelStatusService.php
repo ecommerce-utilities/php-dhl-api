@@ -138,7 +138,7 @@ class DHLParcelStatusService {
 			pieceId: $data['piece-id'] ?? '',
 			leitcode: $data['leitcode'] ?? null,
 			pslzNr: $data['pslz-nr'] ?? '',
-			orderPreferredDeliveryDay: $data['order-preferred-delivery-day'] === 'true',
+			orderPreferredDeliveryDay: ($data['order-preferred-delivery-day'] ?? 'false') === 'true',
 			searchedPieceCode: explode(';', $data['searched-piece-code'] ?? ''),
 			pieceStatus: (int) ($data['piece-status'] ?? '0'),
 			identifierType: (int) ($data['identifier-type'] ?? '0'),
