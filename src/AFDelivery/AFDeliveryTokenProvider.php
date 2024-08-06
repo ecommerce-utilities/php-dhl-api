@@ -3,6 +3,7 @@
 namespace EcommerceUtilities\DHL\AFDelivery;
 
 use EcommerceUtilities\DHL\AFDelivery\TokenProvider\NoTokenException;
+use EcommerceUtilities\DHL\Common\DHLTools;
 use JsonException;
 
 class AFDeliveryTokenProvider {
@@ -21,7 +22,7 @@ class AFDeliveryTokenProvider {
 		]);
 
 		try {
-			$data = json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
+			$data = DHLTools::jsonDecode($response->body);
 
 			if(($data['access_token'] ?? null) === null) {
 				throw new NoTokenException('No access token found in response');

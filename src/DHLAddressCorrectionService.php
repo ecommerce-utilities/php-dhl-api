@@ -7,6 +7,7 @@ use EcommerceUtilities\DHL\AddressCorrection\Address;
 use EcommerceUtilities\DHL\AddressCorrection\AddressCheckResult;
 use EcommerceUtilities\DHL\AFDelivery\AFDeliveryHttpClient;
 use EcommerceUtilities\DHL\AFDelivery\AFDeliveryTokenProvider;
+use EcommerceUtilities\DHL\Common\DHLTools;
 use RuntimeException;
 
 class DHLAddressCorrectionService {
@@ -29,7 +30,7 @@ class DHLAddressCorrectionService {
 		];
 
 		/** @var string|false $body */
-		$body = json_encode($addressBody, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+		$body = DHLTools::jsonEncode($addressBody);
 
 		if($body === false) {
 			throw new RuntimeException('Failed to encode address body to JSON');
@@ -42,7 +43,7 @@ class DHLAddressCorrectionService {
 			]
 		]);
 
-		$data = json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
+		$data = DHLTools::jsonDecode($response->body);
 
 		return new AddressCheckResult(
 			requestId: $data['requestId'],

@@ -4,6 +4,7 @@ namespace EcommerceUtilities\DHL\Services;
 use EcommerceUtilities\DHL\Common\DHLApiCredentials;
 use EcommerceUtilities\DHL\Common\DHLApiException;
 use EcommerceUtilities\DHL\Common\DHLBusinessPortalCredentials;
+use EcommerceUtilities\DHL\Common\DHLTools;
 use EcommerceUtilities\DHL\Services\DHLRetoureService\DHLRetoureServiceResponse;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
@@ -36,7 +37,7 @@ class DHLRetoureService {
 			->withHeader('Accept', 'application/json')
 			->withHeader('Content-Type', 'application/json');
 
-		$data = json_encode([
+		$data = DHLTools::jsonEncode([
 			'receiverId' => $this->credentials->getReceiverId(),
 			'customerReference' => $voucherNr,
 			'shipmentReference' => $shipmentReference,
@@ -52,7 +53,7 @@ class DHLRetoureService {
 			],
 			#'weightInGrams' => 1000,
 			'returnDocumentType' => 'SHIPMENT_LABEL'
-		], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR);
+		]);
 
 		$request = $request->withBody($this->streamFactory->createStream($data));
 		$response = $this->client->sendRequest($request);
@@ -60,7 +61,7 @@ class DHLRetoureService {
 		$result = $response->getBody()->getContents();
 
 		try {
-			$data = json_decode($result, false, 512, JSON_THROW_ON_ERROR);
+			$data = DHLTools::jsonDecode($result);
 
 			if(($data->code ?? 0) > 0) {
 				throw new DHLApiException(sprintf("DHL-Error: %s (%d)", $data->detail ?? 'No details provided', $data->code ?? 0));
