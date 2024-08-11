@@ -65,4 +65,61 @@ class DHLAddressCorrectionService {
 			similarity: $data['similarity']
 		);
 	}
+
+	public function tryFixUnstructuredAddress(?string $name, string $premiseLine1, string $premiseLine2, string $postalCode, string $city, string $countryId): AddressCheckResult {
+		if($countryId !== 'DE') {
+			throw new RuntimeException('Only German addresses are supported at the moment');
+		}
+
+		$requestBody = [
+			'requestId' => $this->uuidGenerator->generateUUID(),
+			'name' => $name,
+			'premiseLine1' => $premiseLine1,
+			'premiseLine2' => $premiseLine2,
+			'postalCode' => $postalCode,
+			'city' => $city,
+			'config' => ''
+		];
+
+		$body = DHLTools::jsonEncode($requestBody);
+
+		$response = $this->client->post('verifyUnstructuredAddress/1.0.0', $body, [
+			'headers' => [
+				'Authorization' => "bearer {$this->tokenProvider->getToken()}",
+				'Content-Type' => 'application/json',
+			]
+		]);
+
+		$data = DHLTools::jsonDecode($response->body);
+
+		$result = [];
+		foreach(['requestId', 'personMatch', 'householdMatch', 'addressMatch', 'bestDeliveryAddress', 'postalCode', 'city', 'district', 'street', 'houseNumber', 'houseNumberAffix', 'firstname', 'name', 'distributionCode', 'addressChanged', 'nameChanged', 'similarity'] as $key) {
+			$result[$key] = $data[$key];
+			unset($data[$key]);
+		}
+
+		if(count($data)) {
+			throw new RuntimeException(sprintf("Found excess fields: %s", json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)));
+		}
+
+		return new AddressCheckResult(
+			requestId: $result['requestId'],
+			personMatch: $result['personMatch'],
+			householdMatch: $result['householdMatch'],
+			addressMatch: $result['addressMatch'],
+			bestDeliveryAddress: $result['bestDeliveryAddress'],
+			postalCode: $result['postalCode'],
+			city: $result['city'],
+			district: $result['district'],
+			street: $result['street'],
+			houseNumber: $result['houseNumber'],
+			houseNumberAffix: $result['houseNumberAffix'],
+			firstname: $result['firstname'],
+			name: $result['name'],
+			distributionCode: $result['distributionCode'],
+			addressChanged: $result['addressChanged'],
+			nameChanged: $result['nameChanged'],
+			similarity: $result['similarity']
+		);
+	}
 }
