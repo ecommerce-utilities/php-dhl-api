@@ -61,7 +61,7 @@ class DHLRetoureService {
 		$result = $response->getBody()->getContents();
 
 		try {
-			$data = DHLTools::jsonDecode($result);
+			$data = DHLTools::jsonDecode($result, asObject: true);
 
 			if(($data->code ?? 0) > 0) {
 				throw new DHLApiException(sprintf("DHL-Error: %s (%d)", $data->detail ?? 'No details provided', $data->code ?? 0));
