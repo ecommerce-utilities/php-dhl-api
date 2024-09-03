@@ -18,6 +18,7 @@ class AddressCheckResult {
 		public readonly string $firstname, // : "Abcdefg",
 		public readonly string $name, // : "Hijklmno",
 		public readonly string $distributionCode, // : "53113090020",
+		public readonly string $distributionCode13, // : "53113090020",
 		public readonly bool $addressChanged, // : false,
 		public readonly bool $nameChanged, // : false,
 		public readonly float $similarity // : 0.95,

@@ -1,9 +1,11 @@
 /*
 !/src
+!/tests
 !/.editorconfig
 !/.gitignore
-!/composer.json
 !/LICENSE
-!/phpstan.neon
 !/README.md
+!/composer.json
+!/phpstan.neon
+!/phpunit.xml
 !/rector.php

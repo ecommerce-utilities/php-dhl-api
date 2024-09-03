@@ -59,7 +59,8 @@ class DHLAddressCorrectionService {
 			houseNumberAffix: $data['houseNumberAffix'],
 			firstname: $data['firstname'],
 			name: $data['name'],
-			distributionCode: $data['distributionCode'],
+			distributionCode: $data['distributionCode13'],
+			distributionCode13: $data['distributionCode'],
 			addressChanged: $data['addressChanged'],
 			nameChanged: $data['nameChanged'],
 			similarity: $data['similarity']
@@ -93,7 +94,7 @@ class DHLAddressCorrectionService {
 		$data = DHLTools::jsonDecode($response->body);
 
 		$result = [];
-		foreach(['requestId', 'personMatch', 'householdMatch', 'addressMatch', 'bestDeliveryAddress', 'postalCode', 'city', 'district', 'street', 'houseNumber', 'houseNumberAffix', 'firstname', 'name', 'distributionCode', 'addressChanged', 'nameChanged', 'similarity'] as $key) {
+		foreach(['requestId', 'personMatch', 'householdMatch', 'addressMatch', 'bestDeliveryAddress', 'postalCode', 'city', 'district', 'street', 'houseNumber', 'houseNumberAffix', 'firstname', 'name', 'distributionCode', 'distributionCode13', 'addressChanged', 'nameChanged', 'similarity'] as $key) {
 			$result[$key] = $data[$key];
 			unset($data[$key]);
 		}
@@ -117,6 +118,7 @@ class DHLAddressCorrectionService {
 			firstname: $result['firstname'],
 			name: $result['name'],
 			distributionCode: $result['distributionCode'],
+			distributionCode13: $result['distributionCode13'],
 			addressChanged: $result['addressChanged'],
 			nameChanged: $result['nameChanged'],
 			similarity: $result['similarity']

@@ -3,3 +3,6 @@ parameters:
 
     paths:
         - src
+
+    bootstrapFiles:
+        - test-sl.php

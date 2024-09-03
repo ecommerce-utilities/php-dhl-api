@@ -81,7 +81,7 @@ class DEPackstationReformatService {
 			}
 		}
 
-		if(preg_match("{Packstation.*?({$this->getFilialPattern()})}i", $street, $m)) {
+		if(preg_match("{(?:Packstation|Postfiliale).*?({$this->getFilialPattern()})}i", $street, $m)) {
 			$result->packstation = (int) $m[1];
 
 			$street = (string) preg_replace("{({$this->getPackstationSpellingsPattern()})(.*?)({$this->getFilialPattern()})}i", '$2', $street);
@@ -258,7 +258,7 @@ class DEPackstationReformatService {
 	}
 
 	private function getPackstationSpellingsPattern(): string {
-		return "(?:DHL\\W*)?Packstation";
+		return "(?:DHL\\W*)?(?:Packstation|Postfiliale)";
 	}
 
 	private function getFilialPattern(): string {
@@ -328,7 +328,7 @@ class DEPackstationReformatService {
 			$result[$i] = strtr($result[$i], ['-' => '\\W?']);
 		}
 
-		$result[] = "Packst(?:a(?:t(?:i(?:o(?:n)?)?)?)?)?\\.?(?:nr|no|nummer)?(?![a-z])";
+		$result[] = "(?:Pack|Paket)st(?:a(?:t(?:i(?:o(?:n)?)?)?)?)?\\.?(?:nr|no|nummer)?(?![a-z])";
 
 		return $result;
 	}
