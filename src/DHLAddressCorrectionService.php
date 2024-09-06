@@ -51,14 +51,15 @@ class DHLAddressCorrectionService {
 			householdMatch: $data['householdMatch'],
 			addressMatch: $data['addressMatch'],
 			bestDeliveryAddress: $data['bestDeliveryAddress'],
-			postalCode: $data['postalCode'],
-			city: $data['city'],
-			district: $data['district'],
+			postNumber: $data['postnumber'] ?? null,
+			firstname: $data['firstname'],
+			name: $data['name'],
 			street: $data['street'],
 			houseNumber: $data['houseNumber'],
 			houseNumberAffix: $data['houseNumberAffix'],
-			firstname: $data['firstname'],
-			name: $data['name'],
+			postalCode: $data['postalCode'],
+			city: $data['city'],
+			district: $data['district'],
 			distributionCode: $data['distributionCode13'],
 			distributionCode13: $data['distributionCode'],
 			addressChanged: $data['addressChanged'],
@@ -94,7 +95,8 @@ class DHLAddressCorrectionService {
 		$data = DHLTools::jsonDecode($response->body);
 
 		$result = [];
-		foreach(['requestId', 'personMatch', 'householdMatch', 'addressMatch', 'bestDeliveryAddress', 'postalCode', 'city', 'district', 'street', 'houseNumber', 'houseNumberAffix', 'firstname', 'name', 'distributionCode', 'distributionCode13', 'addressChanged', 'nameChanged', 'similarity'] as $key) {
+		foreach(['requestId', 'personMatch', 'householdMatch', 'addressMatch', 'bestDeliveryAddress', 'postalCode', 'city', 'district', 'street', 'houseNumber', 'houseNumberAffix', 'firstname', 'name', 'distributionCode', 'distributionCode13', 'addressChanged', 'nameChanged', 'similarity', 'postnumber'] as $key) {
+			$data[$key] ??= null;
 			$result[$key] = $data[$key];
 			unset($data[$key]);
 		}
@@ -109,14 +111,15 @@ class DHLAddressCorrectionService {
 			householdMatch: $result['householdMatch'],
 			addressMatch: $result['addressMatch'],
 			bestDeliveryAddress: $result['bestDeliveryAddress'],
-			postalCode: $result['postalCode'],
-			city: $result['city'],
-			district: $result['district'],
+			postNumber: $result['postnumber'],
+			firstname: $result['firstname'],
+			name: $result['name'],
 			street: $result['street'],
 			houseNumber: $result['houseNumber'],
 			houseNumberAffix: $result['houseNumberAffix'],
-			firstname: $result['firstname'],
-			name: $result['name'],
+			postalCode: $result['postalCode'],
+			city: $result['city'],
+			district: $result['district'],
 			distributionCode: $result['distributionCode'],
 			distributionCode13: $result['distributionCode13'],
 			addressChanged: $result['addressChanged'],
