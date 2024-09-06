@@ -35,7 +35,7 @@ class ReformatPackstationAddressResult implements ReformatAddressResult {
 		return array_filter($this->premiseLines, static fn($premiseLine) => trim($premiseLine) !== '');
 	}
 
-	public function getPackstation(): int {
+	public function getPackstation(): string {
 		return $this->packstation;
 	}
 
@@ -61,6 +61,10 @@ class ReformatPackstationAddressResult implements ReformatAddressResult {
 
 	public function getProbability(): ReformatProbability {
 		return $this->probability;
+	}
+
+	public function getHandler(): string {
+		return $this->handler;
 	}
 
 	public function isDefect(): bool {

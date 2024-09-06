@@ -7,5 +7,7 @@ interface ReformatAddressResult {
 
 	public function getProbability(): ReformatProbability;
 
+	public function getHandler(): string;
+
 	public function isDefect(): bool;
 }

@@ -63,6 +63,10 @@ class ReformatPostalAddressResult implements ReformatAddressResult {
 		return $this->probability;
 	}
 
+	public function getHandler(): string {
+		return $this->handler;
+	}
+
 	public function isDefect(): bool {
 		return $this->isDefect;
 	}
