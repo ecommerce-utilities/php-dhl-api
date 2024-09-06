@@ -2,6 +2,7 @@
 
 namespace EcommerceUtilities\DHL\Services\AddressTools\CountrySpecific;
 
+use EcommerceUtilities\DHL\Services\AddressTools\CountrySpecific\DE\DEStringTools;
 use EcommerceUtilities\DHL\Services\AddressTools\CountrySpecific\DEReformatAddressService\DEPackstationReformatService;
 use EcommerceUtilities\DHL\Services\AddressTools\DEFuzzyAddressMatchService;
 use EcommerceUtilities\DHL\Services\AddressTools\ReformatAddressResult;
@@ -24,6 +25,13 @@ class DEReformatAddressService {
 	 * @return ReformatAddressResult
 	 */
 	public function reformat(array $premiseLines, string $street, string $houseNumber, string $postalCode, string $city, string $country): ReformatAddressResult {
+		$premiseLines = array_map(static fn($val) => DEStringTools::fixEncoding((string) $val), $premiseLines);
+		$street = DEStringTools::fixEncoding($street);
+		$houseNumber = DEStringTools::fixEncoding($houseNumber);
+		$postalCode = DEStringTools::fixEncoding($postalCode);
+		$city = DEStringTools::fixEncoding($city);
+		$country = DEStringTools::fixEncoding($country);
+
 		$result = $this->handlePostfiliale(premiseLines: $premiseLines, street: $street, houseNumber: $houseNumber, postalCode: $postalCode, city: $city, country: $country);
 		if($result !== null) {
 			return $result;
