@@ -77,7 +77,7 @@ class ReformatAddressService {
 								handler: 'AFAPI'
 							);
 						} elseif($result->addressMatch === 'POSTOFFICE') {
-							$resPremiseLines = self::sortPremiseLine($result->postNumber !== null && !$any($premiseLines, fn($l) => str_contains($l, $result->postNumber)) ? [...$premiseLines, $result->postNumber] : [...$premiseLines]);
+							$resPremiseLines = self::removePostNumberFromPremiseLines($result->postNumber, $premiseLines);
 
 							$address = new ReformatPostalAddressResult(
 								premiseLines: $resPremiseLines,
@@ -96,7 +96,7 @@ class ReformatAddressService {
 								handler: 'AFAPI'
 							);
 						} elseif($result->addressMatch === 'PACKSTATION') {
-							$resPremiseLines = self::sortPremiseLine($result->postNumber !== null && !$any($premiseLines, fn($l) => str_contains($l, $result->postNumber)) ? [...$premiseLines, $result->postNumber] : [...$premiseLines]);
+							$resPremiseLines = self::removePostNumberFromPremiseLines($result->postNumber, $premiseLines);
 
 							$address = new ReformatPackstationAddressResult(
 								premiseLines: $resPremiseLines,
@@ -117,13 +117,11 @@ class ReformatAddressService {
 						} elseif($result->addressMatch === 'MISS') {
 							// Do nothing
 						} elseif((string) $result->addressMatch !== 'PACKSTATION') {
-							$x = $result->addressMatch;
+							throw new RuntimeException("New, yet unhandled address match: {$result->addressMatch}");
 						}
-					} else {
-						// Address was not changed
-						$address = $address;
-					}
-				} catch (RuntimeException $e) {
+					} // else: The Address was not changed
+				} catch (RuntimeException) {
+					// Ignore the exception and return the original address
 				}
 			}
 		}
@@ -146,13 +144,19 @@ class ReformatAddressService {
 	 * @param string[] $lines
 	 * @return string[]
 	 */
-	private static function sortPremiseLine(array $lines): array {
-		$getRank = static fn(string $line) => match(true) {
-			(bool) preg_match('{^\\d{6,11}$}', $line) => strlen($line) + 10,
-			(bool) preg_match('{\\b\\d{6,11}\\b}', $line) => strlen($line),
-			default => 0
-		};
-		usort($lines, static fn($l1, $l2) => $getRank($l2) <=> $getRank($l1));
-		return $lines;
+	private static function removePostNumberFromPremiseLines(?string $postNumber, array $lines): array {
+		if($postNumber === null) {
+			return $lines;
+		}
+		$result = [];
+		foreach($lines as $line) {
+			if($line === $postNumber) {
+				continue;
+			}
+			$postNumberDigits = str_split($postNumber);
+			$pattern = implode('\\D*', $postNumberDigits);
+			$result[] = (string) preg_replace("/$pattern/", '', $line);
+		}
+		return array_values(array_filter($result, static fn($line) => trim($line) !== ''));
 	}
 }
