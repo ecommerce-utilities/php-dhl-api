@@ -4,6 +4,7 @@ namespace EcommerceUtilities\DHL\Services\AddressTools;
 
 use EcommerceUtilities\DHL\DHLAddressCorrectionService;
 use EcommerceUtilities\DHL\Services\AddressTools\CountrySpecific\DEReformatAddressService;
+use EcommerceUtilities\DHL\Services\AddressTools\ResultTypes\ReformatPackstationAddressResult;
 use EcommerceUtilities\DHL\Services\AddressTools\ResultTypes\ReformatPostalAddressResult;
 use RuntimeException;
 
@@ -24,7 +25,7 @@ class ReformatAddressService {
 	 */
 	public function reformat(array $premiseLines, string $street, string $houseNumber, string $postalCode, string $city, string $country): ReformatAddressResult {
 		/** @var string[] $premiseLines */
-		$premiseLines = array_filter($premiseLines, static fn($premiseLine) => $premiseLine !== null);
+		$premiseLines = array_filter($premiseLines, static fn($premiseLine) => trim($premiseLine ?? '') !== '');
 
 		$address = null;
 
@@ -40,7 +41,7 @@ class ReformatAddressService {
 
 			if($address->isDefect() || $address->getProbability()->value < ReformatProbability::Medium->value) {
 				$name = $premiseLines[0] ?? '';
-				$premiseLines = array_values(array_filter([
+				$dhlPremiseLines = array_values(array_filter([
 					implode(', ', array_slice($premiseLines, 1)),
 					"$street $houseNumber",
 				], static fn($l) => trim($l, ' ,') !== ''));
@@ -48,41 +49,21 @@ class ReformatAddressService {
 				try {
 					$result = $this->dhlAddressCorrectionService->tryFixUnstructuredAddress(
 						name: $name,
-						premiseLine1: $premiseLines[0] ?? '',
-						premiseLine2: $premiseLines[1] ?? '',
+						premiseLine1: $dhlPremiseLines[0] ?? '',
+						premiseLine2: $dhlPremiseLines[1] ?? '',
 						postalCode: $postalCode,
 						city: $city,
 						countryId: $country
 					);
 
-					if($result->addressChanged && $result->addressMatch !== 'MISS') {
+					$any = static fn($v, $predicate) => count(array_filter($v, $predicate)) > 0;
+
+					if($result->addressChanged) {
 						if(in_array($result->addressMatch, ['BUILDING', 'STREET', 'STREET_FALLBACK'])) {
 							$address = new ReformatPostalAddressResult(
-								premiseLines: $result->postNumber !== null ? [...$premiseLines, $result->postNumber] : $premiseLines,
+								premiseLines: $result->postNumber !== null && !$any($premiseLines, fn($l) => str_contains($l, $result->postNumber)) ? [...$premiseLines, $result->postNumber] : [...$premiseLines],
 								street: $result->street,
-								houseNumber: "{$result->houseNumber} {$result->houseNumberAffix}",
-								postalCode: $result->postalCode,
-								city: $result->city,
-								country: $country,
-								hasChange: $result->addressChanged,
-								isDefect: match($result->addressMatch) {
-									'BUILDING',
-									'STREET',
-									'STREET_FALLBACK' => false,
-									'MISS' => true,
-									default => throw new RuntimeException("Unknown address match type: {$result->addressMatch}")
-								},
-								probability: match(true) {
-									$result->similarity >= .95 => ReformatProbability::High,
-									$result->similarity >= .80 => ReformatProbability::Medium,
-									default => ReformatProbability::Low,
-								}
-							);
-						} else {
-							$address = new ReformatPostalAddressResult(
-								premiseLines: $result->postNumber !== null ? [...$premiseLines, $result->postNumber] : $premiseLines,
-								street: $result->street,
-								houseNumber: "{$result->houseNumber} {$result->houseNumberAffix}",
+								houseNumber: "{$result->houseNumber}{$result->houseNumberAffix}",
 								postalCode: $result->postalCode,
 								city: $result->city,
 								country: $country,
@@ -92,21 +73,55 @@ class ReformatAddressService {
 									$result->similarity >= .95 => ReformatProbability::High,
 									$result->similarity >= .80 => ReformatProbability::Medium,
 									default => ReformatProbability::Low,
-								}
+								},
+								handler: 'AFAPI'
 							);
+						} elseif($result->addressMatch === 'POSTOFFICE') {
+							$resPremiseLines = self::sortPremiseLine($result->postNumber !== null && !$any($premiseLines, fn($l) => str_contains($l, $result->postNumber)) ? [...$premiseLines, $result->postNumber] : [...$premiseLines]);
+
+							$address = new ReformatPostalAddressResult(
+								premiseLines: $resPremiseLines,
+								street: $result->street,
+								houseNumber: $result->houseNumber,
+								postalCode: $result->postalCode,
+								city: $result->city,
+								country: $country,
+								hasChange: $result->addressChanged,
+								isDefect: false,
+								probability: match(true) {
+									$result->similarity >= .95 => ReformatProbability::High,
+									$result->similarity >= .80 => ReformatProbability::Medium,
+									default => ReformatProbability::Low,
+								},
+								handler: 'AFAPI'
+							);
+						} elseif($result->addressMatch === 'PACKSTATION') {
+							$resPremiseLines = self::sortPremiseLine($result->postNumber !== null && !$any($premiseLines, fn($l) => str_contains($l, $result->postNumber)) ? [...$premiseLines, $result->postNumber] : [...$premiseLines]);
+
+							$address = new ReformatPackstationAddressResult(
+								premiseLines: $resPremiseLines,
+								packstation: $result->houseNumber,
+								customerNumber: $result->postNumber,
+								postalCode: $result->postalCode,
+								city: $result->city,
+								country: $country,
+								hasChange: $result->addressChanged,
+								isDefect: false,
+								probability: match(true) {
+									$result->similarity >= .95 => ReformatProbability::High,
+									$result->similarity >= .80 => ReformatProbability::Medium,
+									default => ReformatProbability::Low,
+								},
+								handler: 'AFAPI'
+							);
+						} elseif($result->addressMatch === 'MISS') {
+							// Do nothing
+						} elseif((string) $result->addressMatch !== 'PACKSTATION') {
+							$x = $result->addressMatch;
 						}
 					} else {
-						$address = new ReformatPostalAddressResult(
-							premiseLines: $premiseLines,
-							street: $street,
-							houseNumber: $houseNumber,
-							postalCode: $postalCode,
-							city: $city,
-							country: $country,
-							hasChange: false,
-							isDefect: false,
-							probability: ReformatProbability::High
-						);
+						// Address was not changed
+						$address = $address;
 					}
 				} catch (RuntimeException $e) {
 				}
@@ -122,7 +137,22 @@ class ReformatAddressService {
 			country: $country,
 			hasChange: false,
 			isDefect: false,
-			probability: ReformatProbability::VeryLow
+			probability: ReformatProbability::VeryLow,
+			handler: 'AFAPI'
 		);
+	}
+
+	/**
+	 * @param string[] $lines
+	 * @return string[]
+	 */
+	private static function sortPremiseLine(array $lines): array {
+		$getRank = static fn(string $line) => match(true) {
+			(bool) preg_match('{^\\d{6,11}$}', $line) => strlen($line) + 10,
+			(bool) preg_match('{\\b\\d{6,11}\\b}', $line) => strlen($line),
+			default => 0
+		};
+		usort($lines, static fn($l1, $l2) => $getRank($l2) <=> $getRank($l1));
+		return $lines;
 	}
 }

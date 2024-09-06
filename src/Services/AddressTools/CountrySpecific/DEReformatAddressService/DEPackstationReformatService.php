@@ -30,7 +30,8 @@ class DEPackstationReformatService {
 			country: $country,
 			hasChange: true,
 			isDefect: false,
-			probability: ReformatProbability::VeryHigh
+			probability: ReformatProbability::VeryHigh,
+			handler: 'ALGO'
 		);
 
 		$allSpellings = $this->generateAllPackstationSpellings();

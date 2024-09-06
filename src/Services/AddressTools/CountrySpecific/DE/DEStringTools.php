@@ -4,6 +4,8 @@ namespace EcommerceUtilities\DHL\Services\AddressTools\CountrySpecific\DE;
 
 class DEStringTools {
 	/**
+	 * @deprecated
+	 *
 	 * Applied dot-shortening to the given strings.
 	 *
 	 * Example 1:

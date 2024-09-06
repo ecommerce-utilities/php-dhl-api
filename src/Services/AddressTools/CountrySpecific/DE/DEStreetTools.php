@@ -106,11 +106,6 @@ class DEStreetTools {
 			return true;
 		}
 
-		[$test1, $test2] = DEStringTools::applyDotShortening($street1, $street2);
-		if($test1 === $test2) {
-			return true;
-		}
-
 		$street1 = (string) preg_replace('{(?:(str)a[ßs]+e|Stra?[ßs]*e?\\.)\\b}iu', '$1', $street1);
 		$street2 = (string) preg_replace('{(?:(str)a[ßs]+e|Stra?[ßs]*e?\\.)\\b}iu', '$1', $street2);
 		if($street1 === $street2) {

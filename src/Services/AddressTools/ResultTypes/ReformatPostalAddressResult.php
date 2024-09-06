@@ -24,7 +24,8 @@ class ReformatPostalAddressResult implements ReformatAddressResult {
 		public string $country,
 		public bool $hasChange,
 		public bool $isDefect,
-		public ReformatProbability $probability
+		public ReformatProbability $probability,
+		public string $handler
 	) {}
 
 	/**

@@ -32,14 +32,27 @@ class DEReformatAddressService {
 		$city = DEStringTools::fixEncoding($city);
 		$country = DEStringTools::fixEncoding($country);
 
+		$faulyAddress = new ReformatPostalAddressResult(
+			premiseLines: array_values(array_filter($premiseLines, static fn($premiseLine) => $premiseLine !== null)),
+			street: $street,
+			houseNumber: '',
+			postalCode: $postalCode,
+			city: $city,
+			country: $country,
+			hasChange: false,
+			isDefect: true,
+			probability: ReformatProbability::VeryLow,
+			handler: 'ALGO'
+		);
+
 		$result = $this->handlePostfiliale(premiseLines: $premiseLines, street: $street, houseNumber: $houseNumber, postalCode: $postalCode, city: $city, country: $country);
 		if($result !== null) {
-			return $result;
+			return $faulyAddress;
 		}
 
 		$result = $this->packstationReformatService->handleAddress(premiseLines: $premiseLines, street: $street, houseNumber: $houseNumber, postalCode: $postalCode, city: $city, country: $country);
 		if($result !== null) {
-			return $result;
+			return $faulyAddress;
 		}
 
 		$result = $this->fuzzyAddressMatchService->match(
@@ -70,7 +83,8 @@ class DEReformatAddressService {
 					country: $country,
 					hasChange: false,
 					isDefect: false,
-					probability: ReformatProbability::VeryHigh
+					probability: ReformatProbability::VeryHigh,
+					handler: 'ALGO'
 				);
 			} elseif($result->score > 0.8) {
 				$addresses[] = new ReformatPostalAddressResult(
@@ -82,7 +96,8 @@ class DEReformatAddressService {
 					country: $country,
 					hasChange: true,
 					isDefect: false,
-					probability: ReformatProbability::High
+					probability: ReformatProbability::High,
+					handler: 'ALGO'
 				);
 			} elseif($result->score > 0.6) {
 				$addresses[] = new ReformatPostalAddressResult(
@@ -94,22 +109,13 @@ class DEReformatAddressService {
 					country: $country,
 					hasChange: true,
 					isDefect: false,
-					probability: ReformatProbability::Medium
+					probability: ReformatProbability::Medium,
+					handler: 'ALGO'
 				);
 			}
 		}
 
-		$addresses[] = new ReformatPostalAddressResult(
-			premiseLines: array_filter($premiseLines, static fn($premiseLine) => $premiseLine !== null),
-			street: $street,
-			houseNumber: '',
-			postalCode: $postalCode,
-			city: $city,
-			country: $country,
-			hasChange: false,
-			isDefect: true,
-			probability: ReformatProbability::VeryLow
-		);
+		$addresses[] = $faulyAddress;
 
 		usort($addresses, static fn(ReformatPostalAddressResult $a, ReformatPostalAddressResult $b) => $b->probability->value <=> $a->probability->value);
 
@@ -138,7 +144,8 @@ class DEReformatAddressService {
 				country: $country,
 				hasChange: false,
 				isDefect: false,
-				probability: ReformatProbability::High
+				probability: ReformatProbability::High,
+				handler: 'ALGO'
 			);
 		}
 		return null;
