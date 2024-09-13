@@ -86,10 +86,10 @@ class DEStreetToolsTest extends TestCase {
 			['Lissabonner Straße', 'Lissaboner Str.', 100, false],
 			['Lissabonner Straße', 'Lissaboner Str.', 87, true],
 			['Str. der Opfer des Faschismus', 'Straße der Opfer des Faschismus', 100, true],
-			['An d. Lautsche', 'An der Lautsche', 100, true],
-			['A. d. Lautsche', 'An der Lautsche', 100, true],
-			['An der Lautsche', 'An d. Lautsche', 100, true],
-			['An der Lautsche', 'A. d. Lautsche', 100, true],
+			['An d. Lautsche', 'An der Lautsche', 100, false],
+			['A. d. Lautsche', 'An der Lautsche', 100, false],
+			['An der Lautsche', 'An d. Lautsche', 100, false],
+			['An der Lautsche', 'A. d. Lautsche', 100, false],
 		];
 	}
 }

@@ -35,7 +35,7 @@ class DEReformatAddressService {
 		$faulyAddress = new ReformatPostalAddressResult(
 			premiseLines: array_values(array_filter($premiseLines, static fn($premiseLine) => $premiseLine !== null)),
 			street: $street,
-			houseNumber: '',
+			houseNumber: $houseNumber,
 			postalCode: $postalCode,
 			city: $city,
 			country: $country,
@@ -47,12 +47,12 @@ class DEReformatAddressService {
 
 		$result = $this->handlePostfiliale(premiseLines: $premiseLines, street: $street, houseNumber: $houseNumber, postalCode: $postalCode, city: $city, country: $country);
 		if($result !== null) {
-			return $faulyAddress;
+			return $result;
 		}
 
 		$result = $this->packstationReformatService->handleAddress(premiseLines: $premiseLines, street: $street, houseNumber: $houseNumber, postalCode: $postalCode, city: $city, country: $country);
 		if($result !== null) {
-			return $faulyAddress;
+			return $faulyAddress; // Pass this to the DHL address check
 		}
 
 		$result = $this->fuzzyAddressMatchService->match(
@@ -74,6 +74,7 @@ class DEReformatAddressService {
 			}
 
 			if($result->score > 0.99) {
+				$premiseLines[] = $result->addressAddition;
 				$addresses[] = new ReformatPostalAddressResult(
 					premiseLines: array_filter($premiseLines, static fn($premiseLine) => $premiseLine !== null),
 					street: $streetName,
@@ -87,6 +88,7 @@ class DEReformatAddressService {
 					handler: 'ALGO'
 				);
 			} elseif($result->score > 0.8) {
+				$premiseLines[] = $result->addressAddition;
 				$addresses[] = new ReformatPostalAddressResult(
 					premiseLines: array_filter($premiseLines, static fn($premiseLine) => $premiseLine !== null),
 					street: $streetName,
@@ -100,6 +102,7 @@ class DEReformatAddressService {
 					handler: 'ALGO'
 				);
 			} elseif($result->score > 0.6) {
+				$premiseLines[] = $result->addressAddition;
 				$addresses[] = new ReformatPostalAddressResult(
 					premiseLines: array_filter($premiseLines, static fn($premiseLine) => $premiseLine !== null),
 					street: $streetName,
@@ -133,21 +136,66 @@ class DEReformatAddressService {
 	 * @return ReformatPostalAddressResult|null
 	 */
 	private function handlePostfiliale(array $premiseLines, string $street, string $houseNumber, string $postalCode, string $city, string $country): ?ReformatPostalAddressResult {
-		$fullLine = implode(' ', [...$premiseLines, $street, $houseNumber]);
-		if(preg_match('{\\bPostfiliale\\W*?\\d{2,4}}i', $fullLine)) {
-			return new ReformatPostalAddressResult(
-				premiseLines: array_filter($premiseLines, static fn($premiseLine) => $premiseLine !== null),
-				street: $street,
-				houseNumber: '',
-				postalCode: $postalCode,
-				city: $city,
+		$premiseLines = array_filter($premiseLines, static fn($premiseLine) => $premiseLine !== null);
+
+		$mkResult = static fn(?array $xpremLines = null, ?string $xstreet = null, ?string $xhouseNumber = null, ?string $xpostalCode = null, ?string $xcity = null, bool $xhasChange = false, bool $xisDefect = false, ReformatProbability $prob = ReformatProbability::VeryLow) => new ReformatPostalAddressResult(
+				premiseLines: $xpremLines ?? $premiseLines,
+				street: $xstreet ?? $street,
+				houseNumber: $xhouseNumber ?? $houseNumber,
+				postalCode: $xpostalCode ?? $postalCode,
+				city: $xcity ?? $city,
 				country: $country,
-				hasChange: false,
-				isDefect: false,
-				probability: ReformatProbability::High,
+				hasChange: $xhasChange,
+				isDefect: $xisDefect,
+				probability: $prob,
 				handler: 'ALGO'
 			);
+
+		if(preg_match('{^\\W*Postfiliale\\W*?\\d{2,4}\\W*$}i', "$street $houseNumber", $m)) {
+			return $mkResult(
+				xstreet: 'Postfiliale',
+				xhouseNumber: $m[1],
+				prob: ReformatProbability::High
+			);
 		}
+
+		foreach($premiseLines as $idx => $premiseLine) {
+			if(preg_match('{^\\W*Postfiliale\\W*?(\\d{2,4})\\W*$}i', $premiseLine, $m)) {
+				unset($premiseLines[$idx]);
+				$premiseLines[] = "$street $houseNumber";
+				$premiseLines = array_values($premiseLines);
+				return $mkResult(
+					xpremLines: $premiseLines,
+					xstreet: 'Postfiliale',
+					xhouseNumber: $m[1],
+					prob: ReformatProbability::Medium
+				);
+			}
+
+			if(preg_match('{\\bPostfiliale\\W*?(\\d{2,4})\\b}i', $premiseLine, $m)) {
+				unset($premiseLines[$idx]);
+				$premiseLines[] = "$street $houseNumber";
+				$premiseLines = array_values($premiseLines);
+				return $mkResult(
+					xpremLines: $premiseLines,
+					xstreet: 'Postfiliale',
+					xhouseNumber: $m[1],
+					prob: ReformatProbability::Medium
+				);
+			}
+		}
+
+		$fullLine = implode(' ', [...$premiseLines, $street, $houseNumber]);
+		if(preg_match('{\\bPostfiliale\\W*?(\\d{2,4})\\b}i', $fullLine,$m)) {
+			$premiseLines[] = "$street $houseNumber";
+			return $mkResult(
+				xpremLines: $premiseLines,
+				xstreet: 'Postfiliale',
+				xhouseNumber: $m[1],
+				prob: ReformatProbability::Low
+			);
+		}
+
 		return null;
 	}
 }

@@ -49,7 +49,17 @@ class DEFuzzyAddressMatchService {
 					}
 
 					if(!DEStreetTools::isSameStreetName($street, $hit->_source->{$streetKey})) {
-						continue;
+						$hnPattern = DEStreetTools::HOUSE_NUMBER;
+						if(
+							preg_match("{^(.{6,})\\W*($hnPattern)\\W*(.*?)$}", $street, $m) &&
+							DEStreetTools::isSameStreetName($m[1], $hit->_source->{$streetKey})
+						) {
+							$houseNumber = $m[2];
+							$additionLines = array_values(array_filter([$addition, $m[3]], static fn($a) => trim($a ?? '') !== ''));
+							$addition = implode('; ', $additionLines);
+						} else {
+							continue;
+						}
 					}
 
 					return new FuzzyAddressMatchResult(
