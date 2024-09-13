@@ -66,10 +66,10 @@ class DEReformatAddressServiceTest extends TestCase {
 	 */
 	public static function addressProvider(): array {
 		return [
-			[['Saab, Tarek'], 'Amselweg Straße', '3', '33175', 'Bad Lippspringe', 'DE', ReformatProbability::VeryLow, [['Saab, Tarek'], 'Amselweg Straße', '3', '33175', 'Bad Lippspringe']],
-			[['Letschert, Anja', 'Hermann-Geisen-Straße'], 'Postfiliale', '427', '56203', 'Hlöhr-Grenzhausen', 'DE', ReformatProbability::High, [['Letschert, Anja', 'Hermann-Geisen-Straße'], 'Postfiliale', '427', '56203', 'Hlöhr-Grenzhausen']],
-			[['BCS AIS'], 'Industriestrasse', '2-8', '25601', 'Radolfzell', 'DE', ReformatProbability::VeryLow, [['BCS AIS'], 'Industriestrasse', '2-8', '25601', 'Radolfzell']],
-			[['LBS Süd'], 'Klopstockstraße, Apt. 1504', '8', '80804', 'München', 'DE', ReformatProbability::VeryLow, [['LBS Süd'], 'Klopstockstraße, Apt. 1504', '8', '80804', 'München']],
+			[['Max Mustermann'], 'Amselweg Straße', '3', '33175', 'Bad Lippspringe', 'DE', ReformatProbability::VeryLow, [['Max Mustermann'], 'Amselweg Straße', '3', '33175', 'Bad Lippspringe']],
+			[['Max Mustermann', 'Hermann-Geisen-Straße'], 'Postfiliale', '427', '56203', 'Hlöhr-Grenzhausen', 'DE', ReformatProbability::High, [['Max Mustermann', 'Hermann-Geisen-Straße'], 'Postfiliale', '427', '56203', 'Hlöhr-Grenzhausen']],
+			[['Musterfirma'], 'Industriestrasse', '2-8', '25601', 'Radolfzell', 'DE', ReformatProbability::VeryLow, [['Musterfirma'], 'Industriestrasse', '2-8', '25601', 'Radolfzell']],
+			[['Musterfirma'], 'Klopstockstraße, Apt. 1504', '8', '80804', 'München', 'DE', ReformatProbability::VeryLow, [['Musterfirma'], 'Klopstockstraße, Apt. 1504', '8', '80804', 'München']],
 			[['Max Mustermann'], 'Kalk-Mülheimer', '294', '51065', 'Köln', 'DE', ReformatProbability::VeryHigh, [['Max Mustermann'], 'Kalk-Mülheimer Str.', '294', '51065', 'Köln']],
 			[['Max Mustermann'], 'Am Fuhrenkamp', '13', '28309', 'Bremen', 'DE', ReformatProbability::VeryLow, [['Max Mustermann'], 'Am Fuhrenkamp', '13', '28309', 'Bremen']],
 			[['Max Mustermann'], 'Wasserburger Str', '50a', '83395', 'Freilassing', 'DE', ReformatProbability::VeryHigh, [['Max Mustermann'], 'Wasserburger Str.', '50a', '83395', 'Freilassing']],
