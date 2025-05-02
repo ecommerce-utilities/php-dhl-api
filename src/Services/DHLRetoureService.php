@@ -23,7 +23,7 @@ class DHLRetoureService {
 	 * @return DHLRetoureServiceResponse
 	 */
 	public function getRetourePdf(string $name1, ?string $name2, ?string $name3, string $street, string $streetNumber, string $zip, string $city, string $countryId, ?string $voucherNr = null, ?string $shipmentReference = null): DHLRetoureServiceResponse {
-		$uri = $this->credentials->isProductionEnv() ? 'https://cig.dhl.de/services/production/rest/returns/' : 'https://cig.dhl.de/services/sandbox/rest/returns/';
+		$uri = $this->credentials->isProductionEnv() ? '/services/production/rest/returns/' : '/services/sandbox/rest/returns/';
 
 		$body = DHLTools::jsonEncode([
 			'receiverId' => $this->credentials->getReceiverId(),
