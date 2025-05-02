@@ -13,7 +13,7 @@ class HttpClient {
 	public function __construct(
 		private readonly RequestFactoryInterface $requestFactory,
 		private readonly ClientInterface $client,
-		private readonly ?string $baseUri,
+		private readonly ?string $baseUri = null,
 	) {}
 
 	/**
