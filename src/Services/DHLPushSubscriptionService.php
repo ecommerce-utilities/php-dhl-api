@@ -19,7 +19,7 @@ class DHLPushSubscriptionService {
 		// https://api-eu.dhl.com/post/de/tracking/push/v2/subscriptions
 		// https://api.dhl.com/webhooks/v1/subscribe
 		$token = $this->tokenProvider->getToken();
-		$request = $request->withHeader('Authorization', "Basic $token");	 //. base64_encode($this->credentials->getUsername() . ':' . $this->credentials->getPassword()));
+		$request = $request->withHeader('Authorization', "Bearer $token");
 		$response = $this->client->sendRequest($request);
 		$responseJson = $response->getBody()->getContents();
 		$responseData = DHLTools::jsonDecode($responseJson);

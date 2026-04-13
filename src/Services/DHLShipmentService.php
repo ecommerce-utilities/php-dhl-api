@@ -31,7 +31,6 @@ class DHLShipmentService {
 		$shipment = [
 			'product' => $shippingService->getProductKeyDomestic($request->recipientAddress->countryCode),
 			'billingNumber' => $shippingService->getBillingNumberDomestic($request->recipientAddress->countryCode),
-			'refNo' => $request->reference,
 			'shipDate' => ($request->shipDate ?? new DateTimeImmutable())->format('Y-m-d'),
 			'shipper' => $this->buildShipper($request),
 			'consignee' => $this->buildConsignee($request),
@@ -42,6 +41,10 @@ class DHLShipmentService {
 				],
 			],
 		];
+
+		if($request->reference) {
+			$shipment['refNo'] = $request->reference;
+		}
 
 		$services = $this->buildServices($request->services);
 		if($services !== []) {

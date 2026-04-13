@@ -12,7 +12,7 @@ use EcommerceUtilities\DHL\Services\DHLShipmentService\DHLShipmentRecipientAddre
 use EcommerceUtilities\DHL\Services\DHLShipmentService\DHLShipmentRecipientAddressPostal;
 use EcommerceUtilities\DHL\Services\DHLShipmentService\DHLShipmentRequest;
 use EcommerceUtilities\DHL\Services\DHLShipmentService\DHLShipmentSenderAddress;
-use EcommerceUtilities\DHL\Services\DHLShipmentService\DHLShippingService;
+use EcommerceUtilities\DHL\Services\DHLShipmentService\DHLShippingServiceConfiguration;
 use GuzzleHttp\Psr7\Response;
 use Http\Factory\Guzzle\RequestFactory;
 use PHPUnit\Framework\Attributes\CoversNothing;
@@ -53,7 +53,7 @@ class DHLShipmentServiceTest extends TestCase {
 
 		$services = $this->createDhlServices($client, productionEnv: false);
 		$response = $services->getShipmentService()->createLabel(
-			new DHLShippingService(
+			new DHLShippingServiceConfiguration(
 				myCountryId: 'DE',
 				productKeyNational: 'V01PAK',
 				productKeyInternational: 'V53WPAK',
@@ -162,7 +162,7 @@ class DHLShipmentServiceTest extends TestCase {
 
 		$services = $this->createDhlServices($client, productionEnv: false);
 		$services->getShipmentService()->createLabel(
-			new DHLShippingService(
+			new DHLShippingServiceConfiguration(
 				myCountryId: 'DE',
 				productKeyNational: 'V01PAK',
 				productKeyInternational: 'V53WPAK',
@@ -228,7 +228,7 @@ class DHLShipmentServiceTest extends TestCase {
 
 		$services = $this->createDhlServices($client, productionEnv: true);
 		$services->getShipmentService()->createLabel(
-			new DHLShippingService(
+			new DHLShippingServiceConfiguration(
 				myCountryId: 'DE',
 				productKeyNational: 'V01PAK',
 				productKeyInternational: 'V53WPAK',
