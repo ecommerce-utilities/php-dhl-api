@@ -136,7 +136,6 @@ Public API changes:
 
 Compatibility note:
 
-- `0.3.0` still aliases the old `HttpClient` class name via `src/shims.php`.
 - New and migrated code should still switch to `DHLHttpClient`.
 
 ### Before and after for shipment labels
