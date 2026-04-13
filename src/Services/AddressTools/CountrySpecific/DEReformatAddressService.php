@@ -151,7 +151,7 @@ class DEReformatAddressService {
 				handler: 'ALGO'
 			);
 
-		if(preg_match('{^\\W*Postfiliale\\W*?\\d{2,4}\\W*$}i', "$street $houseNumber", $m)) {
+		if(preg_match('{^\\W*Postfiliale\\W*?(\\d{2,4})\\W*$}i', "$street $houseNumber", $m)) {
 			return $mkResult(
 				xstreet: 'Postfiliale',
 				xhouseNumber: $m[1],
