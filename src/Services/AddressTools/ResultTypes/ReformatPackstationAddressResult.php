@@ -8,7 +8,7 @@ use EcommerceUtilities\DHL\Services\AddressTools\ReformatProbability;
 class ReformatPackstationAddressResult implements ReformatAddressResult {
 	/**
 	 * @param string[] $premiseLines
-	 * @param string $packstation
+	 * @param int|string $packstation
 	 * @param string|null $customerNumber
 	 * @param string $postalCode
 	 * @param string $city
@@ -17,7 +17,7 @@ class ReformatPackstationAddressResult implements ReformatAddressResult {
 	 */
 	public function __construct(
 		public array $premiseLines,
-		public string $packstation,
+		public int|string $packstation,
 		public ?string $customerNumber,
 		public string $postalCode,
 		public string $city,
@@ -35,7 +35,7 @@ class ReformatPackstationAddressResult implements ReformatAddressResult {
 		return array_filter($this->premiseLines, static fn($premiseLine) => trim($premiseLine) !== '');
 	}
 
-	public function getPackstation(): string {
+	public function getPackstation(): int|string {
 		return $this->packstation;
 	}
 

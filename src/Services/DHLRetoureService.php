@@ -1,21 +1,18 @@
 <?php
 namespace EcommerceUtilities\DHL\Services;
 
-use EcommerceUtilities\DHL\Common\DHLApiCredentials;
-use EcommerceUtilities\DHL\Common\DHLApiException;
 use EcommerceUtilities\DHL\Common\DHLBusinessPortalCredentials;
+use EcommerceUtilities\DHL\Common\DHLApiException;
+use EcommerceUtilities\DHL\Common\DHLOAuthCredentials;
 use EcommerceUtilities\DHL\Common\DHLTools;
 use EcommerceUtilities\DHL\Http\HttpClient;
 use EcommerceUtilities\DHL\Services\DHLRetoureService\DHLRetoureServiceResponse;
-use Psr\Http\Client\ClientInterface;
-use Psr\Http\Message\RequestFactoryInterface;
-use Psr\Http\Message\StreamFactoryInterface;
 use Throwable;
 
 class DHLRetoureService {
 	public function __construct(
-		private readonly DHLBusinessPortalCredentials $businessPortalCredentials,
-		private readonly DHLApiCredentials $credentials,
+		private readonly DHLOAuthCredentials $businessPortalCredentials,
+		private readonly DHLBusinessPortalCredentials $credentials,
 		private readonly HttpClient $client
 	) {}
 
@@ -23,10 +20,10 @@ class DHLRetoureService {
 	 * @return DHLRetoureServiceResponse
 	 */
 	public function getRetourePdf(string $name1, ?string $name2, ?string $name3, string $street, string $streetNumber, string $zip, string $city, string $countryId, ?string $voucherNr = null, ?string $shipmentReference = null): DHLRetoureServiceResponse {
-		$uri = $this->credentials->isProductionEnv() ? '/services/production/rest/returns/' : '/services/sandbox/rest/returns/';
+		$uri = $this->credentials->isProductionEnv ? '/services/production/rest/returns/' : '/services/sandbox/rest/returns/';
 
 		$body = DHLTools::jsonEncode([
-			'receiverId' => $this->credentials->getReceiverId(),
+			'receiverId' => $this->credentials->receiverId,
 			'customerReference' => $voucherNr,
 			'shipmentReference' => $shipmentReference,
 			'senderAddress' => [
@@ -46,8 +43,8 @@ class DHLRetoureService {
 		$auth = static fn($username, $password) => base64_encode(sprintf('%s:%s', $username, $password));
 
 		$headers = [
-			'Authorization' => sprintf('Basic %s', $auth($this->credentials->getUsername(), $this->credentials->getPassword())),
-			'DPDHL-User-Authentication-Token' => $auth($this->businessPortalCredentials->getUsername(), $this->businessPortalCredentials->getPassword()),
+			'Authorization' => sprintf('Basic %s', $auth($this->credentials->username, $this->credentials->password)),
+			'DPDHL-User-Authentication-Token' => $auth($this->businessPortalCredentials->key, $this->businessPortalCredentials->secret),
 			'Accept' => 'application/json',
 			'Content-Type' => 'application/json',
 		];

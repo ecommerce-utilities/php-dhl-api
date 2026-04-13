@@ -19,7 +19,15 @@ class DHLTools {
 	 * @return mixed
 	 * @throws JsonException
 	 */
-	public static function jsonDecode(string $input, bool $asObject = false): mixed {
-		return json_decode($input, !$asObject, 512, JSON_THROW_ON_ERROR);
+	public static function jsonDecode(string $input, bool $asObject = false, mixed $default = null): mixed {
+		try {
+			return json_decode($input, !$asObject, 512, JSON_THROW_ON_ERROR);
+		} catch(JsonException $e) {
+			if(func_num_args() >= 3) {
+				return $default;
+			}
+
+			throw $e;
+		}
 	}
 }

@@ -9,7 +9,7 @@ use DOMDocument;
 use DOMElement;
 use DOMNode;
 use DOMXPath;
-use EcommerceUtilities\DHL\Common\DHLApiCredentials;
+use EcommerceUtilities\DHL\Common\DHLBusinessPortalCredentials;
 use EcommerceUtilities\DHL\Services\DHLParcelStatusService\ParcelStatus;
 use EcommerceUtilities\DHL\Services\DHLParcelStatusService\ParcelStatusEvent;
 use Psr\Http\Client\ClientInterface;
@@ -18,7 +18,7 @@ use RuntimeException;
 
 class DHLParcelStatusService {
 	public function __construct(
-		private readonly DHLApiCredentials $credentials,
+		private readonly DHLBusinessPortalCredentials $credentials,
 		private readonly RequestFactoryInterface $requestFactory,
 		private readonly ClientInterface $client
 	) {}
@@ -67,7 +67,7 @@ class DHLParcelStatusService {
 			sleep(1);
 
 			$request = $this->requestFactory->createRequest('GET', "https://api-eu.dhl.com/parcel/de/tracking/v0/shipments?xml=$xml");
-			$request = $request->withHeader('Authorization', 'Basic ' . base64_encode($this->credentials->getUsername() . ':' . $this->credentials->getPassword()));
+			$request = $request->withHeader('Authorization', 'Basic ' . base64_encode($this->credentials->username . ':' . $this->credentials->password));
 			$response = $this->client->sendRequest($request);
 			$responseXml = $response->getBody()->getContents();
 

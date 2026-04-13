@@ -5,6 +5,7 @@
 !/.gitignore
 !/LICENSE
 !/README.md
+!/UPGRADE.md
 !/composer.json
 !/phpstan.neon
 !/phpunit.xml
