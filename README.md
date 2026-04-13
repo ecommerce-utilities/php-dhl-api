@@ -13,24 +13,31 @@ Use at your own risk - parents are responsible for their children!
 
 ```PHP
 <?php
-use EcommerceUtilities\DHL\Common\DHLBusinessPortalCredentials;
 use EcommerceUtilities\DHL\Common\DHLOAuthCredentials;
-use EcommerceUtilities\DHL\DHLServices;
+use EcommerceUtilities\DHL\Common\DHLOAuthTokenProvider;
+use EcommerceUtilities\DHL\Http\DHLHttpClient;
+use EcommerceUtilities\DHL\Services\DHLRetoureService;
 use GuzzleHttp\Client;
 use Http\Factory\Guzzle\RequestFactory;
 
 require 'vendor/autoload.php';
 
-$oauthCredentials = new DHLOAuthCredentials('<api key from developer.dhl.com>', '<api secret from developer.dhl.com>');
-$businessPortalCredentials = new DHLBusinessPortalCredentials(
-	true,
-	'<username of www.dhl.de/de/geschaeftskunden>',
-	'<password of www.dhl.de/de/geschaeftskunden>',
-	'<receiver-id>'
+$isProductionEnv = false;
+
+$credentials = new DHLOAuthCredentials(
+	businessPortalUsername: '<username of the DHL business customer portal or sandbox user>',
+	businessPortalPassword: '<password of the DHL business customer portal or sandbox password>',
+	key: '<api key from developer.dhl.com>',
+	secret: '<api secret from developer.dhl.com>',
+	isProductionEnv: $isProductionEnv,
+	receiverId: $isProductionEnv ? '<production receiver-id>' : 'deu'
 );
 
-$services = new DHLServices($oauthCredentials, $businessPortalCredentials, new RequestFactory(), new Client());
-$response = $services->getRetoureService()->getRetourePdf(
+$httpClient = new DHLHttpClient(new RequestFactory(), new Client(), $isProductionEnv);
+$tokenProvider = new DHLOAuthTokenProvider($credentials, $httpClient);
+$retoureService = new DHLRetoureService($tokenProvider, $credentials, $httpClient);
+
+$response = $retoureService->getRetourePdf(
 	'Max',         // $name1
 	'Mustermann',  // $name2
 	null,          // $name3
@@ -52,29 +59,35 @@ file_put_contents('label.pdf', $response->getLabelData());
 ```PHP
 <?php
 
-use EcommerceUtilities\DHL\Common\DHLBusinessPortalCredentials;
 use EcommerceUtilities\DHL\Common\DHLOAuthCredentials;
-use EcommerceUtilities\DHL\DHLServices;
+use EcommerceUtilities\DHL\Common\DHLOAuthTokenProvider;
+use EcommerceUtilities\DHL\Http\DHLHttpClient;
+use EcommerceUtilities\DHL\Services\DHLShipmentService;
 use EcommerceUtilities\DHL\Services\DHLShipmentService\DHLNamedPersonOnly;
 use EcommerceUtilities\DHL\Services\DHLShipmentService\DHLShipmentRecipientAddressPostal;
 use EcommerceUtilities\DHL\Services\DHLShipmentService\DHLShipmentRequest;
 use EcommerceUtilities\DHL\Services\DHLShipmentService\DHLShipmentSenderAddress;
-use EcommerceUtilities\DHL\Services\DHLShipmentService\DHLShippingService;
+use EcommerceUtilities\DHL\Services\DHLShipmentService\DHLShippingServiceConfiguration;
 use GuzzleHttp\Client;
 use Http\Factory\Guzzle\RequestFactory;
 
 require 'vendor/autoload.php';
 
-$oauthCredentials = new DHLOAuthCredentials('<api key from developer.dhl.com>', '<api secret from developer.dhl.com>');
-$businessPortalCredentials = new DHLBusinessPortalCredentials(
-	false,
-	'<username of the DHL business customer portal>',
-	'<password of the DHL business customer portal>'
+$isProductionEnv = false;
+
+$credentials = new DHLOAuthCredentials(
+	businessPortalUsername: '<username of the DHL business customer portal or sandbox user>',
+	businessPortalPassword: '<password of the DHL business customer portal or sandbox password>',
+	key: '<api key from developer.dhl.com>',
+	secret: '<api secret from developer.dhl.com>',
+	isProductionEnv: $isProductionEnv
 );
 
-$services = new DHLServices($oauthCredentials, $businessPortalCredentials, new RequestFactory(), new Client());
+$httpClient = new DHLHttpClient(new RequestFactory(), new Client(), $isProductionEnv);
+$tokenProvider = new DHLOAuthTokenProvider($credentials, $httpClient);
+$shipmentService = new DHLShipmentService($tokenProvider, $httpClient);
 
-$shippingService = new DHLShippingService(
+$shippingService = new DHLShippingServiceConfiguration(
 	myCountryId: 'DE',
 	productKeyNational: 'V01PAK',
 	productKeyInternational: 'V53WPAK',
@@ -113,7 +126,7 @@ $request = new DHLShipmentRequest(
 	],
 );
 
-$response = $services->getShipmentService()->createLabel($shippingService, $request);
+$response = $shipmentService->createLabel($shippingService, $request);
 file_put_contents('label.pdf', $response->getLabelData());
 ```
 
@@ -125,4 +138,11 @@ Supported outbound shipment features:
 * Cash on delivery (`DHLCashOnDeliveryService`)
 * Named person only (`DHLNamedPersonOnly`)
 
-`DHLOAuthCredentials` contains the developer portal API key/secret. `DHLBusinessPortalCredentials` contains the business customer portal login plus the environment flag and, for retoure use cases, the `receiverId`. The developer portal `appName` is not part of the OAuth token request.
+`DHLOAuthCredentials` now contains the business customer portal login, the developer portal API key/secret, the environment flag, and optionally the `receiverId` for returns use cases. The current setup flow is:
+
+1. Create `DHLOAuthCredentials`
+2. Create `DHLHttpClient`
+3. Create `DHLOAuthTokenProvider`
+4. Inject those dependencies into `DHLRetoureService` or `DHLShipmentService`
+
+For DHL Returns in sandbox, use the sandbox user plus `receiverId = 'deu'`. The developer portal `appName` is not part of the OAuth token request.

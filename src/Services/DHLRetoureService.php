@@ -5,7 +5,7 @@ use EcommerceUtilities\DHL\Common\DHLApiException;
 use EcommerceUtilities\DHL\Common\DHLOAuthCredentials;
 use EcommerceUtilities\DHL\Common\DHLOAuthTokenProvider;
 use EcommerceUtilities\DHL\Common\DHLTools;
-use EcommerceUtilities\DHL\Http\HttpClient;
+use EcommerceUtilities\DHL\Http\DHLHttpClient;
 use EcommerceUtilities\DHL\Http\HttpClientException;
 use EcommerceUtilities\DHL\Http\HttpResponse;
 use EcommerceUtilities\DHL\Services\DHLRetoureService\DHLRetoureServiceResponse;
@@ -15,7 +15,7 @@ class DHLRetoureService {
 	public function __construct(
 		private readonly DHLOAuthTokenProvider $oAuthTokenProvider,
 		private readonly DHLOAuthCredentials $credentials,
-		private readonly HttpClient $client,
+		private readonly DHLHttpClient $client,
 	) {}
 
 	/**

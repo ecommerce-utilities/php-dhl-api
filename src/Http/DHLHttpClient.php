@@ -9,7 +9,7 @@ use Psr\Http\Message\ResponseInterface;
 /**
  * @phpstan-type HttpOptions = array{headers?: array<string, string>}
  */
-class HttpClient {
+class DHLHttpClient {
 	public function __construct(
 		private readonly RequestFactoryInterface $requestFactory,
 		private readonly ClientInterface $client,

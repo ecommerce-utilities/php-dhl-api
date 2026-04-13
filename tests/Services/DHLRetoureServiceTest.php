@@ -5,7 +5,7 @@ namespace Services;
 use EcommerceUtilities\DHL\Common\DHLApiException;
 use EcommerceUtilities\DHL\Common\DHLOAuthCredentials;
 use EcommerceUtilities\DHL\Common\DHLOAuthTokenProvider;
-use EcommerceUtilities\DHL\Http\HttpClient;
+use EcommerceUtilities\DHL\Http\DHLHttpClient;
 use EcommerceUtilities\DHL\Services\DHLRetoureService;
 use GuzzleHttp\Psr7\Response;
 use Http\Factory\Guzzle\RequestFactory;
@@ -94,7 +94,7 @@ class DHLRetoureServiceTest extends TestCase {
 	}
 
 	private function createService(ClientInterface $client, string $receiverId, bool $productionEnv): DHLRetoureService {
-		$httpClient = new HttpClient(new RequestFactory(), $client, $productionEnv);
+		$httpClient = new DHLHttpClient(new RequestFactory(), $client, $productionEnv);
 		$credentials = new DHLOAuthCredentials(
 			businessPortalUsername: 'gkp-user',
 			businessPortalPassword: 'gkp-password',

@@ -7,7 +7,7 @@ use EcommerceUtilities\DHL\Common\DHLApiException;
 use EcommerceUtilities\DHL\Common\DHLCountryCodes;
 use EcommerceUtilities\DHL\Common\DHLOAuthTokenProvider;
 use EcommerceUtilities\DHL\Common\DHLTools;
-use EcommerceUtilities\DHL\Http\HttpClient;
+use EcommerceUtilities\DHL\Http\DHLHttpClient;
 use EcommerceUtilities\DHL\Http\HttpClientException;
 use EcommerceUtilities\DHL\Http\HttpResponse;
 use EcommerceUtilities\DHL\Services\DHLShipmentService\DHLCashOnDeliveryService;
@@ -24,7 +24,7 @@ use JsonException;
 class DHLShipmentService {
 	public function __construct(
 		private readonly DHLOAuthTokenProvider $oAuthTokenProvider,
-		private readonly HttpClient $client,
+		private readonly DHLHttpClient $client,
 	) {}
 
 	public function createLabel(DHLShippingServiceConfiguration $shippingService, DHLShipmentRequest $request): DHLShipmentServiceResponse {

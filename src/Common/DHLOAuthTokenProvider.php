@@ -2,7 +2,7 @@
 
 namespace EcommerceUtilities\DHL\Common;
 
-use EcommerceUtilities\DHL\Http\HttpClient;
+use EcommerceUtilities\DHL\Http\DHLHttpClient;
 use EcommerceUtilities\DHL\Http\HttpClientException;
 use EcommerceUtilities\DHL\Http\HttpResponse;
 
@@ -12,7 +12,7 @@ class DHLOAuthTokenProvider {
 
 	public function __construct(
 		private readonly DHLOAuthCredentials $oauthCredentials,
-		private readonly HttpClient $client,
+		private readonly DHLHttpClient $client,
 	) {}
 
 	public function getToken(): string {
