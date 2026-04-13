@@ -53,12 +53,9 @@ class DHLShipmentService {
 
 		try {
 			$response = $this->client->post(
-				'/orders?' . http_build_query($this->buildQueryParameters($shippingService)),
-				DHLTools::jsonEncode([
-					'profile' => $shippingService->getProfile(),
-					'shipments' => [$shipment],
-				]),
-				[
+				path: '/parcel/de/shipping/v2/orders?' . http_build_query($this->buildQueryParameters($shippingService)),
+				body: DHLTools::jsonEncode(['profile' => $shippingService->getProfile(), 'shipments' => [$shipment]]),
+				options: [
 					'headers' => [
 						'Accept' => 'application/json',
 						'Accept-Language' => $shippingService->getAcceptLanguage(),

@@ -13,7 +13,7 @@ class HttpClient {
 	public function __construct(
 		private readonly RequestFactoryInterface $requestFactory,
 		private readonly ClientInterface $client,
-		private readonly ?string $baseUri = null,
+		private readonly bool $isProductionEnv,
 	) {}
 
 	/**
@@ -22,7 +22,7 @@ class HttpClient {
 	 * @return HttpResponse
 	 */
 	public function get(string $path, array $options = []): HttpResponse {
-		$baseUri = $this->genBaseUri($this->baseUri, $path);
+		$baseUri = $this->getBaseUri($path);
 		$request = $this->requestFactory->createRequest('GET', $baseUri);
 		foreach($options['headers'] ?? [] as $header => $value) {
 			$request = $request->withHeader($header, $value);
@@ -38,7 +38,7 @@ class HttpClient {
 	 * @return HttpResponse
 	 */
 	public function post(string $path, string $body, array $options = []): HttpResponse {
-		$baseUri = $this->genBaseUri($this->baseUri, $path);
+		$baseUri = $this->getBaseUri($path);
 		$request = $this->requestFactory->createRequest('POST', $baseUri);
 		$request->getBody()->write($body);
 		foreach($options['headers'] ?? [] as $header => $value) {
@@ -63,10 +63,13 @@ class HttpClient {
 		return $result;
 	}
 
-	private function genBaseUri(?string $baseUri, string $path): string {
-		if($baseUri === null) {
-			return $path;
-		}
-		return rtrim($baseUri, '/') . '/' . ltrim($path, '/');
+	private function getBaseUri(string $path): string {
+		$environmentBaseUri = $this->isProductionEnv
+			? 'https://api-eu.dhl.com'
+			: 'https://api-sandbox.dhl.com';
+
+		$path = strtr($path, ['{{dhl:env}}' => $this->isProductionEnv ? 'production' : 'sandbox']);
+
+		return rtrim($environmentBaseUri, '/') . '/' . ltrim($path, '/');
 	}
 }

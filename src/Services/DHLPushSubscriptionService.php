@@ -6,6 +6,7 @@ use EcommerceUtilities\DHL\Common\DHLOAuthTokenProvider;
 use EcommerceUtilities\DHL\Common\DHLTools;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
+use RuntimeException;
 
 class DHLPushSubscriptionService {
 	public function __construct(
@@ -23,6 +24,10 @@ class DHLPushSubscriptionService {
 		$response = $this->client->sendRequest($request);
 		$responseJson = $response->getBody()->getContents();
 		$responseData = DHLTools::jsonDecode($responseJson);
-		print_r($responseData);
+		if(!is_array($responseData)) {
+			throw new RuntimeException('Unexpected push subscription response');
+		}
+
+		return $responseData;
 	}
 }

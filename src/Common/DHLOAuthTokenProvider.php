@@ -12,7 +12,6 @@ class DHLOAuthTokenProvider {
 
 	public function __construct(
 		private readonly DHLOAuthCredentials $oauthCredentials,
-		private readonly DHLBusinessPortalCredentials $credentials,
 		private readonly HttpClient $client,
 	) {}
 
@@ -22,10 +21,10 @@ class DHLOAuthTokenProvider {
 		}
 
 		try {
-			$responseJson = $this->client->post('/token', http_build_query([
+			$responseJson = $this->client->post('/parcel/de/account/auth/ropc/v1/token', http_build_query([
 				'grant_type' => 'password',
-				'username' => $this->credentials->username,
-				'password' => $this->credentials->password,
+				'username' => $this->oauthCredentials->businessPortalUsername,
+				'password' => $this->oauthCredentials->businessPortalPassword,
 				'client_id' => $this->oauthCredentials->key,
 				'client_secret' => $this->oauthCredentials->secret,
 			]), [
