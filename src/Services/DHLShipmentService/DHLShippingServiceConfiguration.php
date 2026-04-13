@@ -4,7 +4,7 @@ namespace EcommerceUtilities\DHL\Services\DHLShipmentService;
 
 use EcommerceUtilities\DHL\Common\DHLCountryCodes;
 
-class DHLShippingService {
+class DHLShippingServiceConfiguration {
 	public function __construct(
 		private readonly string $myCountryId,
 		private readonly string $productKeyNational,

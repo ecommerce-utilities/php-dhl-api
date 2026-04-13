@@ -18,7 +18,7 @@ use EcommerceUtilities\DHL\Services\DHLShipmentService\DHLShipmentRecipientAddre
 use EcommerceUtilities\DHL\Services\DHLShipmentService\DHLShipmentRequest;
 use EcommerceUtilities\DHL\Services\DHLShipmentService\DHLShipmentServiceResponse;
 use EcommerceUtilities\DHL\Services\DHLShipmentService\DHLShipmentServiceProduct;
-use EcommerceUtilities\DHL\Services\DHLShipmentService\DHLShippingService;
+use EcommerceUtilities\DHL\Services\DHLShipmentService\DHLShippingServiceConfiguration;
 use JsonException;
 
 class DHLShipmentService {
@@ -27,7 +27,7 @@ class DHLShipmentService {
 		private readonly HttpClient $client,
 	) {}
 
-	public function createLabel(DHLShippingService $shippingService, DHLShipmentRequest $request): DHLShipmentServiceResponse {
+	public function createLabel(DHLShippingServiceConfiguration $shippingService, DHLShipmentRequest $request): DHLShipmentServiceResponse {
 		$shipment = [
 			'product' => $shippingService->getProductKeyDomestic($request->recipientAddress->countryCode),
 			'billingNumber' => $shippingService->getBillingNumberDomestic($request->recipientAddress->countryCode),
@@ -94,7 +94,7 @@ class DHLShipmentService {
 	/**
 	 * @return array<string, string>
 	 */
-	private function buildQueryParameters(DHLShippingService $shippingService): array {
+	private function buildQueryParameters(DHLShippingServiceConfiguration $shippingService): array {
 		$query = [
 			'includeDocs' => 'include',
 			'docFormat' => $shippingService->getDocumentFormat(),
