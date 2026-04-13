@@ -29,10 +29,7 @@
 	"autoload": {
         "psr-4": {
 			"EcommerceUtilities\\DHL\\": "src/"
-		},
-		"files": [
-			"src/shims.php"
-		]
+		}
     },
 	"scripts": {
 		"phpstan": "phpstan analyse -c phpstan.neon"
