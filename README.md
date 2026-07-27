@@ -9,6 +9,36 @@ Use at your own risk - parents are responsible for their children!
 
 `composer require ecommerce-utilities/dhl-api *`
 
+## Shipment Tracking Unified Push
+
+The push API uses the API key from the DHL Developer Portal. It does not use the
+OAuth token for the DHL business customer portal.
+
+```PHP
+use EcommerceUtilities\DHL\Services\DHLPushSubscriptionService;
+use GuzzleHttp\Client;
+use Http\Factory\Guzzle\RequestFactory;
+
+$pushService = new DHLPushSubscriptionService(
+	'<api key from developer.dhl.com>',
+	new RequestFactory(),
+	new Client(),
+);
+
+$pushService->createShipmentSubscription(
+	'https://shop.example/dhl-tracking-push/<webhook secret>',
+	'post-de',
+	['<tracking number>'],
+);
+```
+
+The validation message sent to the webhook contains the subscription ID and its
+hook secret. Use both to activate the subscription:
+
+```PHP
+$pushService->activateSubscription('<subscription id>', '<DHL hook secret>');
+```
+
 ## Example:
 
 ```PHP
