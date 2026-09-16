@@ -3,12 +3,14 @@
 namespace EcommerceUtilities\DHL\Services\DHLShipmentService;
 
 class DHLShipmentServiceResponse {
+	/** @param list<string> $warnings */
 	public function __construct(
 		private readonly string $trackingNumber,
 		private readonly string $labelData,
 		private readonly ?string $codLabelData,
 		private readonly ?string $routingCode,
 		private readonly object $data,
+		private readonly array $warnings = [],
 	) {}
 
 	public function getTrackingNumber(): string {
@@ -29,5 +31,10 @@ class DHLShipmentServiceResponse {
 
 	public function getData(): object {
 		return $this->data;
+	}
+
+	/** @return list<string> */
+	public function getWarnings(): array {
+		return $this->warnings;
 	}
 }

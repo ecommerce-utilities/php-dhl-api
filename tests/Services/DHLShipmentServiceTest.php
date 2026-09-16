@@ -2,9 +2,10 @@
 
 namespace Services;
 
-use EcommerceUtilities\DHL\DHLServices;
-use EcommerceUtilities\DHL\Common\DHLBusinessPortalCredentials;
 use EcommerceUtilities\DHL\Common\DHLOAuthCredentials;
+use EcommerceUtilities\DHL\Common\DHLOAuthTokenProvider;
+use EcommerceUtilities\DHL\Http\DHLHttpClient;
+use EcommerceUtilities\DHL\Services\DHLShipmentService;
 use EcommerceUtilities\DHL\Services\DHLShipmentService\DHLCashOnDeliveryService;
 use EcommerceUtilities\DHL\Services\DHLShipmentService\DHLNamedPersonOnly;
 use EcommerceUtilities\DHL\Services\DHLShipmentService\DHLShipmentRecipientAddressPackstation;
@@ -51,8 +52,8 @@ class DHLShipmentServiceTest extends TestCase {
 			], JSON_THROW_ON_ERROR)),
 		]);
 
-		$services = $this->createDhlServices($client, productionEnv: false);
-		$response = $services->getShipmentService()->createLabel(
+		$services = $this->createShipmentService($client, productionEnv: false);
+		$response = $services->createLabel(
 			new DHLShippingServiceConfiguration(
 				myCountryId: 'DE',
 				productKeyNational: 'V01PAK',
@@ -160,8 +161,8 @@ class DHLShipmentServiceTest extends TestCase {
 			], JSON_THROW_ON_ERROR)),
 		]);
 
-		$services = $this->createDhlServices($client, productionEnv: false);
-		$services->getShipmentService()->createLabel(
+		$services = $this->createShipmentService($client, productionEnv: false);
+		$services->createLabel(
 			new DHLShippingServiceConfiguration(
 				myCountryId: 'DE',
 				productKeyNational: 'V01PAK',
@@ -226,8 +227,8 @@ class DHLShipmentServiceTest extends TestCase {
 			], JSON_THROW_ON_ERROR)),
 		]);
 
-		$services = $this->createDhlServices($client, productionEnv: true);
-		$services->getShipmentService()->createLabel(
+		$services = $this->createShipmentService($client, productionEnv: true);
+		$services->createLabel(
 			new DHLShippingServiceConfiguration(
 				myCountryId: 'DE',
 				productKeyNational: 'V01PAK',
@@ -271,21 +272,18 @@ class DHLShipmentServiceTest extends TestCase {
 		self::assertSame([
 			'name' => 'Max Mustermann',
 			'retailID' => 518,
-			'postNumber' => '1182271787',
 			'postalCode' => '22303',
 			'city' => 'Hamburg',
 			'country' => 'DEU',
+			'postNumber' => '1182271787',
 			'email' => 'max.mustermann@example.com',
 		], $body['shipments'][0]['consignee']);
 	}
 
-	private function createDhlServices(ClientInterface $client, bool $productionEnv): DHLServices {
-		return new DHLServices(
-			new DHLOAuthCredentials('api-key', 'api-secret'),
-			new DHLBusinessPortalCredentials($productionEnv, 'gkp-user', 'gkp-password'),
-			new RequestFactory(),
-			$client,
-		);
+	private function createShipmentService(ClientInterface $client, bool $productionEnv): DHLShipmentService {
+		$http = new DHLHttpClient(new RequestFactory(), $client, $productionEnv);
+		$credentials = new DHLOAuthCredentials('gkp-user', 'gkp-password', 'api-key', 'api-secret', $productionEnv);
+		return new DHLShipmentService(new DHLOAuthTokenProvider($credentials, $http), $http);
 	}
 }
 

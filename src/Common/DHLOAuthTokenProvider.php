@@ -37,12 +37,15 @@ class DHLOAuthTokenProvider {
 			throw $this->createApiException($e->response);
 		}
 
-		$responseData = DHLTools::jsonDecode($responseJson->body, asObject: true, default: (object) []);
-		if(($responseData->token_type ?? null) !== 'Bearer' || !is_string($responseData->access_token ?? null)) {
-			throw new DHLApiException('Invalid OAuth token response from DHL');
+		$decoded = DHLTools::jsonDecode($responseJson->body, asObject: true, default: (object) []);
+		$responseData = is_object($decoded) ? $decoded : (object) [];
+		if(($responseData->token_type ?? null) !== 'Bearer' || !is_string($responseData->access_token ?? null)
+			|| trim($responseData->access_token) === '') {
+			throw new DHLApiException('Invalid OAuth token response from DHL', httpStatus: $responseJson->statusCode, definiteRejection: true);
 		}
 
-		$expiresIn = max(1, (int) ($responseData->expires_in ?? 1) - 30);
+		$expiresValue = $responseData->expires_in ?? 1;
+		$expiresIn = max(1, (is_int($expiresValue) || (is_string($expiresValue) && ctype_digit($expiresValue)) ? (int) $expiresValue : 1) - 30);
 		$this->accessToken = $responseData->access_token;
 		$this->expiresAt = time() + $expiresIn;
 
@@ -50,13 +53,14 @@ class DHLOAuthTokenProvider {
 	}
 
 	private function createApiException(HttpResponse $response): DHLApiException {
-		$data = DHLTools::jsonDecode($response->body, asObject: true, default: (object) []);
+		$decoded = DHLTools::jsonDecode($response->body, asObject: true, default: (object) []);
+		$data = is_object($decoded) ? $decoded : (object) [];
 		$message = $data->error_description
 			?? $data->message
 			?? $data->detail
 			?? $data->title
 			?? "OAuth token request failed with HTTP status {$response->statusCode}";
 
-		return new DHLApiException((string) $message);
+		return new DHLApiException(is_string($message) ? $message : 'DHL authentication failed', httpStatus: $response->statusCode, definiteRejection: true);
 	}
 }
