@@ -27,8 +27,8 @@ $pushService = new DHLPushSubscriptionService(
 
 $pushService->createShipmentSubscription(
 	'https://shop.example/dhl-tracking-push/<webhook secret>',
-	'post-de',
-	['<tracking number>'],
+	'parcel-de',
+	['<tracking number 1>', '<tracking number 2>'],
 );
 ```
 
@@ -38,6 +38,60 @@ hook secret. Use both to activate the subscription:
 ```PHP
 $pushService->activateSubscription('<subscription id>', '<DHL hook secret>');
 ```
+
+### Batch subscriptions and daily quota
+
+DHL documents **1 to 10 tracking numbers per subscription request** in
+`SubscriptionShipmentIds.shipmentIDs` of its
+[Unified Push OpenAPI specification v1.2.5](https://developer.dhl.com/sites/default/files/2026-08/push%20v1.2.5_12.yaml)
+(checked 2026-09-26). The maximum is stated in the property's description, not as
+a machine-readable `maxItems` constraint. The library exposes this limit as
+`DHLPushSubscriptionService::MAX_SHIPMENT_IDS_PER_REQUEST`.
+
+`createShipmentSubscription()` still sends exactly one request and returns one
+subscription response. More than ten IDs, missing required input or invalid IDs
+now raise `DHLRequestValidationException` (a `DHLApiException`) locally, before any
+API call. For larger lists, iterate the new batch method:
+
+```PHP
+$trackingNumbers = [/* pending tracking numbers */];
+foreach($pushService->createShipmentSubscriptions(
+	'https://office.example/dhl-tracking-push/<webhook secret>',
+	'parcel-de',
+	$trackingNumbers,
+) as $batch) {
+	// Persist this response together with every shipment ID in the batch
+	// before requesting the next batch. One subscription covers the whole batch.
+	$shipmentIds = $batch['shipmentIds'];
+	$response = $batch['response'];
+	// $response['self'] identifies the subscription to activate via its webhook secret.
+}
+```
+
+The generator sends requests only while it is iterated, with ten IDs per request
+except for a smaller final batch. It validates the complete input before the
+first request, preserves ID order and leading zeros, and makes no requests for
+an empty list. Errors stop iteration without retrying; already yielded results
+remain available to the caller. Persist each result inside the loop rather than
+collecting all results with `iterator_to_array()`. An interrupted/failed HTTP
+request may already have created a subscription: reconcile it before retrying
+and never replay the complete list blindly.
+
+Each batch still requires its own activation call. For `N` shipments, budget at
+least `2 * ceil(N / 10)` outgoing API calls (creation plus activation). A quota of
+500 calls/day therefore allows **at most 2,500 new shipments/day** with full
+batches, before additional lookups, deletions or retries. At 8,000 shipments/day,
+at least 1,600 calls are needed. Incoming webhook messages do not consume this
+outgoing-call quota. See the [DHL access form](https://developer.dhl.com/form/access-request-shipment-tracking)
+and [activation workflow](https://developer.dhl.com/api-reference/shipment-tracking-unified-push).
+
+The batch method does not collect numbers across separate calls, enforce the
+daily quota or activate subscriptions automatically. Consumers such as
+ShopOffice must aggregate pending shipments, map all batch members to the shared
+subscription ID, activate each subscription only once, and reserve quota for
+activation and retries. For durable queues that must reserve a batch before the
+HTTP request, use `array_chunk($trackingNumbers, DHLPushSubscriptionService::MAX_SHIPMENT_IDS_PER_REQUEST)`
+and call `createShipmentSubscription()` for each reserved batch.
 
 ## Example:
 

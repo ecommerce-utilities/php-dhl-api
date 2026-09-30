@@ -3,13 +3,18 @@
 namespace EcommerceUtilities\DHL\Services;
 
 use EcommerceUtilities\DHL\Common\DHLApiException;
+use EcommerceUtilities\DHL\Common\DHLRequestValidationException;
 use EcommerceUtilities\DHL\Common\DHLTools;
+use Generator;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 
 class DHLPushSubscriptionService {
 	private const BASE_URI = 'https://api-eu.dhl.com/tracking/push/v1';
+
+	/** DHL Unified Push v1.2.5: SubscriptionShipmentIds.shipmentIDs (maxItems: 10). */
+	public const MAX_SHIPMENT_IDS_PER_REQUEST = 10;
 
 	/** @var list<string> */
 	public const ALL_EVENTS = ['Transit', 'Delivered', 'Pre-Transit', 'Failure', 'Unknown'];
@@ -21,6 +26,8 @@ class DHLPushSubscriptionService {
 	) {}
 
 	/**
+	 * Creates one subscription; larger lists must use createShipmentSubscriptions().
+	 *
 	 * @param list<string> $shipmentIds
 	 * @param list<string> $events
 	 * @return array<mixed>
@@ -31,8 +38,12 @@ class DHLPushSubscriptionService {
 		array $shipmentIds,
 		array $events = self::ALL_EVENTS,
 	): array {
-		if($webhookUri === '' || $service === '' || $shipmentIds === [] || $events === []) {
-			throw new DHLApiException('Webhook URI, service, shipment IDs and events must not be empty');
+		$this->validateShipmentSubscriptionRequest($webhookUri, $service, $shipmentIds, $events);
+		if(count($shipmentIds) > self::MAX_SHIPMENT_IDS_PER_REQUEST) {
+			throw new DHLRequestValidationException(
+				'A DHL push subscription accepts at most ' . self::MAX_SHIPMENT_IDS_PER_REQUEST
+				. ' shipment IDs; use createShipmentSubscriptions() for larger lists',
+			);
 		}
 
 		return $this->sendJsonRequest(
@@ -47,6 +58,57 @@ class DHLPushSubscriptionService {
 				'shipmentIDs' => array_values($shipmentIds),
 			],
 		);
+	}
+
+	/**
+	 * Sends one request per batch during iteration, filling all but the last batch to DHL's limit.
+	 * Each successful batch is yielded before sending the next so callers can persist partial progress.
+	 * All input is validated before the first request; an empty list sends no requests.
+	 * Errors stop iteration without retries, as the failing request may already have been accepted.
+	 * Activation remains a separate request for each returned subscription.
+	 *
+	 * @param list<string> $shipmentIds
+	 * @param list<string> $events
+	 * @return Generator<int, array{shipmentIds: list<string>, response: array<mixed>}, mixed, void>
+	 */
+	public function createShipmentSubscriptions(
+		string $webhookUri,
+		string $service,
+		array $shipmentIds,
+		array $events = self::ALL_EVENTS,
+	): Generator {
+		if($shipmentIds === []) {
+			return;
+		}
+
+		$this->validateShipmentSubscriptionRequest($webhookUri, $service, $shipmentIds, $events);
+		foreach(array_chunk($shipmentIds, self::MAX_SHIPMENT_IDS_PER_REQUEST) as $batch) {
+			yield [
+				'shipmentIds' => $batch,
+				'response' => $this->createShipmentSubscription($webhookUri, $service, $batch, $events),
+			];
+		}
+	}
+
+	/**
+	 * @param array<mixed> $shipmentIds
+	 * @param list<string> $events
+	 */
+	private function validateShipmentSubscriptionRequest(
+		string $webhookUri,
+		string $service,
+		array $shipmentIds,
+		array $events,
+	): void {
+		if(trim($webhookUri) === '' || trim($service) === '' || $shipmentIds === [] || $events === []) {
+			throw new DHLRequestValidationException('Webhook URI, service, shipment IDs and events must not be empty');
+		}
+
+		foreach($shipmentIds as $shipmentId) {
+			if(!is_string($shipmentId) || trim($shipmentId) === '') {
+				throw new DHLRequestValidationException('Shipment IDs must be non-empty strings');
+			}
+		}
 	}
 
 	/**

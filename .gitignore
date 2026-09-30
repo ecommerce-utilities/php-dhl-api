@@ -5,6 +5,7 @@
 !/.gitignore
 !/LICENSE
 !/README.md
+!/CHANGELOG.md
 !/UPGRADE.md
 !/composer.json
 !/phpstan.neon
